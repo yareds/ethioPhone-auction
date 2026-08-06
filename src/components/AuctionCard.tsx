@@ -105,15 +105,15 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
   };
 
   return (
-    <div className="group flex flex-col bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:border-yellow-400 dark:hover:border-yellow-500 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative">
+    <div className="group flex flex-col bg-[var(--color-paper)] dark:bg-[var(--color-ink)] rounded-3xl overflow-hidden border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] hover:border-[var(--color-gold)] hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 relative">
       
       {/* Watchlist toggle button */}
       <button
         onClick={(e) => { e.stopPropagation(); toggleWatchlist(listing.id); }}
         className={`absolute top-4 right-4 z-10 p-2 rounded-full border shadow-sm transition-all ${
           isWatched
-            ? "bg-red-500 border-red-500 text-white hover:scale-110"
-            : "bg-white/80 dark:bg-gray-900/80 border-gray-150 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-900 hover:scale-110"
+            ? "bg-[var(--color-danger)] border-[var(--color-danger)] text-white hover:scale-110"
+            : "bg-[var(--color-paper)]/80 dark:bg-[var(--color-ink)]/80 border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] text-gray-500 dark:text-gray-400 hover:bg-[var(--color-paper)] dark:hover:bg-[var(--color-ink)] hover:scale-110"
         }`}
         id={`watchlist-toggle-${listing.id}`}
         title={isWatched ? "Remove from Watchlist" : "Add to Watchlist"}
@@ -124,12 +124,12 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
       {/* Featured / Live Ribbon */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
         {listing.isFeatured && (
-          <span className="bg-gradient-to-r from-yellow-500 to-amber-600 text-slate-900 text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
+          <span className="bg-[var(--color-gold)] text-[var(--color-ink)] text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
             ⭐ Featured
           </span>
         )}
         {isLive && (
-          <span className="bg-red-500 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider animate-pulse">
+          <span className="bg-[var(--color-danger)] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider animate-pulse">
             🔴 Live
           </span>
         )}
@@ -144,14 +144,14 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
           </span>
         )}
         {listing.status === AuctionStatus.COMPLETED && (
-          <span className="bg-green-600 text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
+          <span className="bg-[var(--color-verified)] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
             🤝 Completed
           </span>
         )}
       </div>
 
       {/* Image container */}
-      <div className="h-56 w-full overflow-hidden relative bg-gray-100 dark:bg-gray-950 cursor-pointer" onClick={() => onViewDetails(listing)}>
+      <div className="h-56 w-full overflow-hidden relative bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] cursor-pointer" onClick={() => onViewDetails(listing)}>
         <img
           src={listing.images[0] || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"}
           alt={`${listing.brand} ${listing.model}`}
@@ -174,23 +174,23 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${getConditionStyle(listing.condition)}`}>
               {getConditionLabel(listing.condition)}
             </span>
-            <span className="text-[10px] font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-md">
+            <span className="text-[10px] font-bold bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded-md">
               {listing.storage} / {listing.ram}
             </span>
           </div>
 
           <h3
             onClick={() => onViewDetails(listing)}
-            className="font-sans font-extrabold text-base text-gray-900 dark:text-white line-clamp-1 hover:text-yellow-500 cursor-pointer transition-colors"
+            className="font-sans font-extrabold text-base text-gray-900 dark:text-white line-clamp-1 hover:text-[var(--color-gold)] cursor-pointer transition-colors"
           >
             {listing.brand} {listing.model}
           </h3>
 
           {/* Shop information / Verification indicator */}
-          <div className="flex items-center gap-1.5 mt-1">
+          <div className="flex items-center gap-1.5 mt-1 flex-wrap">
             {associatedShop ? (
-              <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-0.5">
-                <CheckCircle className="h-3 w-3 fill-current text-white dark:text-gray-900" />
+              <span className="text-xs text-[var(--color-verified)] font-semibold flex items-center gap-0.5">
+                <CheckCircle className="h-3 w-3 fill-current text-[var(--color-verified-soft)]" />
                 {associatedShop.name}
               </span>
             ) : (
@@ -199,7 +199,7 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
               </span>
             )}
             {listing.isImeiVerified && (
-              <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400 px-1.5 py-0.5 rounded font-bold">
+              <span className="seal text-[9px] py-0 px-1.5">
                 IMEI VERIFIED
               </span>
             )}
@@ -211,12 +211,12 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
         </div>
 
         {/* Pricing, Bids & Timer */}
-        <div className="mt-5 pt-4 border-t border-gray-50 dark:border-gray-800/60">
+        <div className="mt-5 pt-4 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
           
           <div className="flex items-center justify-between gap-2 mb-3">
             <div>
               <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-bold">Current Bid</p>
-              <p className="text-lg font-black text-gray-900 dark:text-white">
+              <p className="text-lg font-black font-display text-gray-900 dark:text-white">
                 ETB {listing.currentBid.toLocaleString()}
               </p>
               <p className="text-[10px] text-gray-400 dark:text-gray-500">
@@ -228,7 +228,7 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
               <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-wider font-bold flex items-center gap-1 justify-end">
                 <Clock className="h-3 w-3 text-gray-400" /> Time Left
               </p>
-              <p className={`text-sm font-extrabold ${isLive ? "text-red-500" : isUpcoming ? "text-blue-500" : "text-gray-400"}`}>
+              <p className={`text-sm font-extrabold ${isLive ? "text-[var(--color-danger)]" : isUpcoming ? "text-blue-500" : "text-gray-400"}`}>
                 {timeLeft}
               </p>
               <p className="text-[10px] text-gray-400 dark:text-gray-500">
@@ -242,10 +242,10 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
             onClick={() => onViewDetails(listing)}
             className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               isLive
-                ? "bg-yellow-400 hover:bg-yellow-500 text-slate-900 shadow-md shadow-yellow-400/10"
+                ? "bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] shadow-md"
                 : isUpcoming
-                ? "bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
-                : "bg-gray-50 dark:bg-gray-800/40 text-gray-400 cursor-not-allowed border border-gray-100 dark:border-gray-800"
+                ? "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-gray-900 dark:text-gray-100"
+                : "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)]/40 text-gray-400 cursor-not-allowed border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]"
             }`}
             id={`view-detail-${listing.id}`}
           >

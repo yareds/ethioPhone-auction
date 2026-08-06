@@ -7,6 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { UserRole } from "../types";
 import { Bell, Search, Shield, Sun, Moon, Sparkles, LogIn, LogOut, ChevronDown, Check, Trash2, Smartphone, X, User, Mail, Phone, UserPlus, MapPin } from "lucide-react";
+import { BrandLogo, PhoneLetterO } from "./Logo";
 
 export default function Navigation({ activeTab, setActiveTab }: { activeTab: string; setActiveTab: (tab: string) => void }) {
   const {
@@ -57,32 +58,31 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
   const regions = ["All", "Addis Ababa", "Oromia", "Amhara", "Sidama", "Tigray"];
   const statuses = [
     { value: "all", label: "All Auctions" },
-    { value: "live", label: "🔴 Live Now" },
-    { value: "upcoming", label: "📅 Upcoming" },
-    { value: "ended", label: "🏁 Ended" }
+    { value: "live", label: "Live Now" },
+    { value: "upcoming", label: "Upcoming" },
+    { value: "ended", label: "Ended" }
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md transition-colors duration-200">
+    <header className="sticky top-0 z-40 w-full border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)]/95 dark:bg-[var(--color-ink)]/95 backdrop-blur-md transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           
           {/* Logo */}
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActiveTab("home"); setSelectedBrand(""); setSelectedRegion(""); setSelectedStatus("all"); setSearchQuery(""); }}>
-            <div className="bg-yellow-400 dark:bg-yellow-500 text-slate-900 p-2 rounded-xl shadow-md">
-              <Smartphone className="h-6 w-6" id="nav-logo-icon" />
-            </div>
-            <div>
-              <span className="font-sans font-extrabold text-xl tracking-tight text-gray-900 dark:text-white flex items-center gap-1">
-                EthioPhone <span className="text-yellow-500 font-normal text-sm bg-yellow-100 dark:bg-yellow-950/50 dark:text-yellow-300 px-2 py-0.5 rounded-full border border-yellow-200 dark:border-yellow-900">Auction</span>
-              </span>
-            </div>
-          </div>
+          <BrandLogo
+            onClick={() => {
+              setActiveTab("home");
+              setSelectedBrand("");
+              setSelectedRegion("");
+              setSelectedStatus("all");
+              setSearchQuery("");
+            }}
+          />
 
           {/* Quick Search Bar */}
           <div className="hidden md:flex flex-1 max-w-md relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="h-4 w-4 text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40" />
             </div>
             <input
               type="text"
@@ -92,7 +92,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 setSearchQuery(e.target.value);
                 if (activeTab !== "home") setActiveTab("home");
               }}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-sm transition-all"
+              className="block w-full pl-10 pr-3 py-2 border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-xl bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] placeholder-[var(--color-ink)]/40 dark:placeholder-[var(--color-paper)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] focus:border-[var(--color-gold)] text-sm transition-all"
               id="search-input-field"
             />
           </div>
@@ -105,8 +105,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 onClick={() => setActiveTab("home")}
                 className={`px-3 py-2 rounded-lg transition-all ${
                   activeTab === "home"
-                    ? "bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white font-semibold"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                    ? "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] font-semibold"
+                    : "text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)]"
                 }`}
                 id="tab-home-btn"
               >
@@ -118,8 +118,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                   onClick={() => setActiveTab("buyer")}
                   className={`px-3 py-2 rounded-lg transition-all ${
                     activeTab === "buyer"
-                      ? "bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white font-semibold"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      ? "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] font-semibold"
+                      : "text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)]"
                   }`}
                   id="tab-buyer-btn"
                 >
@@ -132,8 +132,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                   onClick={() => setActiveTab("seller")}
                   className={`px-3 py-2 rounded-lg transition-all ${
                     activeTab === "seller"
-                      ? "bg-gray-100 dark:bg-gray-800 text-gray-950 dark:text-white font-semibold"
-                      : "text-gray-600 dark:text-gray-400 hover:text-gray-950 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      ? "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] font-semibold"
+                      : "text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)]"
                   }`}
                   id="tab-seller-btn"
                 >
@@ -144,10 +144,10 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               {currentUser.role === UserRole.ADMIN && (
                 <button
                   onClick={() => setActiveTab("admin")}
-                  className={`px-3 py-2 rounded-lg text-red-600 dark:text-red-400 transition-all flex items-center gap-1 ${
+                  className={`px-3 py-2 rounded-lg text-[var(--color-danger)] transition-all flex items-center gap-1 ${
                     activeTab === "admin"
-                      ? "bg-red-50 dark:bg-red-950/30 font-semibold"
-                      : "hover:bg-red-50/50 dark:hover:bg-red-950/10"
+                      ? "bg-[var(--color-danger)]/10 font-semibold"
+                      : "hover:bg-[var(--color-danger)]/5"
                   }`}
                   id="tab-admin-btn"
                 >
@@ -159,8 +159,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
 
             <button
               onClick={() => setActiveTab("signup")}
-              className={`bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold text-xs px-3 py-2 rounded-xl shadow-md gap-1.5 flex items-center transition-all hover:scale-[1.02] active:scale-95 ${
-                activeTab === "signup" ? "ring-2 ring-yellow-500 ring-offset-2" : ""
+              className={`bg-[var(--color-gold)] hover:bg-[var(--color-gold-soft)] text-[var(--color-paper)] font-semibold text-xs px-3 py-2 rounded-xl shadow-md gap-1.5 flex items-center transition-all hover:scale-[1.02] active:scale-95 ${
+                activeTab === "signup" ? "ring-2 ring-[var(--color-gold)] ring-offset-2" : ""
               }`}
               id="header-signup-btn"
             >
@@ -170,35 +170,35 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+              className="p-2 text-[var(--color-ink)] dark:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)] rounded-xl transition-all"
               title={isDarkMode ? "Light Theme" : "Dark Theme"}
               id="theme-toggle-btn"
             >
-              {isDarkMode ? <Sun className="h-5 w-5 text-yellow-400" /> : <Moon className="h-5 w-5 text-indigo-950" />}
+              {isDarkMode ? <Sun className="h-5 w-5 text-[var(--color-gold)]" /> : <Moon className="h-5 w-5 text-[var(--color-ink)]" />}
             </button>
 
             {/* Notification Center */}
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => { setShowNotifDropdown(!showNotifDropdown); setShowProfileDropdown(false); }}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all relative"
+                className="p-2 text-[var(--color-ink)] dark:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)] rounded-xl transition-all relative"
                 id="notif-bell-btn"
               >
                 <Bell className="h-5 w-5" />
                 {unreadNotifs.length > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-gray-900 animate-pulse">
+                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--color-danger)] text-[9px] font-bold text-white ring-2 ring-[var(--color-paper)] dark:ring-[var(--color-ink)] animate-pulse">
                     {unreadNotifs.length}
                   </span>
                 )}
               </button>
 
               {showNotifDropdown && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                    <span className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1.5">
+                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="p-4 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] flex items-center justify-between">
+                    <span className="font-bold text-sm text-[var(--color-ink)] dark:text-[var(--color-paper)] flex items-center gap-1.5">
                       Notifications
                       {unreadNotifs.length > 0 && (
-                        <span className="bg-red-100 dark:bg-red-950 text-red-600 dark:text-red-400 text-xs px-2 py-0.5 rounded-full">
+                        <span className="bg-[var(--color-danger)]/10 text-[var(--color-danger)] text-xs px-2 py-0.5 rounded-full">
                           {unreadNotifs.length} new
                         </span>
                       )}
@@ -206,7 +206,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                     {unreadNotifs.length > 0 && (
                       <button
                         onClick={clearNotifications}
-                        className="text-xs text-yellow-600 dark:text-yellow-400 hover:underline flex items-center gap-1"
+                        className="text-xs text-[var(--color-gold)] hover:underline flex items-center gap-1"
                         id="clear-all-notif"
                       >
                         <Check className="h-3 w-3" /> Mark all read
@@ -214,10 +214,10 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                     )}
                   </div>
 
-                  <div className="max-h-80 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-800">
+                  <div className="max-h-80 overflow-y-auto divide-y divide-[var(--color-paper-soft)] dark:divide-[var(--color-ink-soft)]">
                     {notifications.filter((n) => n.userId === currentUser.id).length === 0 ? (
-                      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-                        <Bell className="h-8 w-8 mx-auto text-gray-300 dark:text-gray-600 mb-2" />
+                      <div className="p-8 text-center text-[var(--color-ink)]/50 dark:text-[var(--color-paper)]/50">
+                        <Bell className="h-8 w-8 mx-auto text-[var(--color-ink)]/30 dark:text-[var(--color-paper)]/30 mb-2" />
                         <p className="text-xs">No notifications yet.</p>
                       </div>
                     ) : (
@@ -228,19 +228,19 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                           <div
                             key={notif.id}
                             onClick={() => markNotificationRead(notif.id)}
-                            className={`p-4 transition-colors cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 ${
-                              !notif.isRead ? "bg-yellow-50/40 dark:bg-yellow-950/10" : ""
+                            className={`p-4 transition-colors cursor-pointer hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)] ${
+                              !notif.isRead ? "bg-[var(--color-gold-soft)]/15 dark:bg-[var(--color-gold)]/10" : ""
                             }`}
                           >
                             <div className="flex items-start justify-between gap-2">
-                              <span className="font-semibold text-xs text-gray-900 dark:text-white">
+                              <span className="font-semibold text-xs text-[var(--color-ink)] dark:text-[var(--color-paper)]">
                                 {notif.title}
                               </span>
-                              <span className="text-[10px] text-gray-400 dark:text-gray-500">
+                              <span className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40">
                                 {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                            <p className="text-xs text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 mt-1 line-clamp-2">
                               {notif.message}
                             </p>
                           </div>
@@ -257,7 +257,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 <>
                   <button
                     onClick={() => { setShowProfileDropdown(!showProfileDropdown); setShowNotifDropdown(false); }}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white dark:bg-yellow-500 dark:hover:bg-yellow-600 dark:text-slate-900 font-extrabold text-xs transition-all shadow-md hover:scale-[1.02] active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[var(--color-ink)] hover:bg-[var(--color-ink-soft)] text-white dark:bg-[var(--color-gold)] dark:hover:bg-[var(--color-gold-soft)] dark:text-[var(--color-ink)] font-semibold text-xs transition-all shadow-md hover:scale-[1.02] active:scale-95"
                     id="sign-in-btn"
                   >
                     <LogIn className="h-3.5 w-3.5" />
@@ -266,23 +266,23 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                   </button>
 
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                        <p className="text-xs font-bold text-gray-900 dark:text-white">Choose a Demo Profile</p>
-                        <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">Select an account below to sign in instantly.</p>
+                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="p-4 bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)]/50 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
+                        <p className="text-xs font-bold text-[var(--color-ink)] dark:text-[var(--color-paper)]">Choose a Demo Profile</p>
+                        <p className="text-[11px] text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 mt-1">Select an account below to sign in instantly.</p>
                       </div>
 
-                      <div className="p-2 border-b border-gray-100 dark:border-gray-800">
+                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
                         <div className="space-y-0.5">
                           {users.filter(u => u.id !== "guest").map((u) => (
                             <button
                               key={u.id}
                               onClick={() => { switchUser(u.id); setShowProfileDropdown(false); }}
-                              className="w-full flex items-center justify-between px-3 py-2 text-left text-xs rounded-xl transition-all text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                              className="w-full flex items-center justify-between px-3 py-2 text-left text-xs rounded-xl transition-all text-[var(--color-ink)] dark:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)]"
                             >
                               <div className="truncate">
                                 <span className="block font-bold truncate">{u.name}</span>
-                                <span className="text-[9px] font-normal uppercase text-gray-400 dark:text-gray-500">
+                                <span className="text-[9px] font-normal uppercase text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40">
                                   {u.role.replace("_", " ")} {u.id === "user-admin" ? "(Bole Olympia Plaza)" : ""}
                                 </span>
                               </div>
@@ -291,18 +291,18 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                         </div>
                       </div>
 
-                      <div className="p-2 border-b border-gray-100 dark:border-gray-800 bg-amber-500/5">
+                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-gold)]/5">
                         <button
                           onClick={() => { setActiveTab("signup"); setShowProfileDropdown(false); }}
-                          className="w-full bg-slate-900 hover:bg-slate-850 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-white dark:text-slate-900 font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                          className="w-full bg-[var(--color-ink)] hover:bg-[var(--color-ink-soft)] text-white dark:bg-[var(--color-gold)] dark:hover:bg-[var(--color-gold-soft)] dark:text-[var(--color-ink)] font-semibold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
                         >
                           <UserPlus className="h-3.5 w-3.5" /> Sign Up New Account
                         </button>
                       </div>
 
-                      <div className="p-2 bg-gray-50 dark:bg-gray-800/20 text-center">
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                          EthioPhone Auction Demo v1.0
+                      <div className="p-2 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/20 text-center">
+                        <p className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 font-medium">
+                          ETPhone Auction v1.0
                         </p>
                       </div>
                     </div>
@@ -312,7 +312,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 <>
                   <button
                     onClick={() => { setShowProfileDropdown(!showProfileDropdown); setShowNotifDropdown(false); }}
-                    className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40"
+                    className="flex items-center gap-1.5 p-1 rounded-xl hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)] transition-all border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper-soft)]/40 dark:bg-[var(--color-ink-soft)]/40"
                     id="profile-dropdown-btn"
                   >
                     <img
@@ -320,32 +320,32 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                       alt={currentUser.name}
                       className="h-7 w-7 rounded-lg object-cover"
                     />
-                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 hidden sm:inline max-w-[90px] truncate">
+                    <span className="text-xs font-semibold text-[var(--color-ink)] dark:text-[var(--color-paper)] hidden sm:inline max-w-[90px] truncate">
                       {currentUser.name.split(" ")[0]}
                     </span>
-                    <ChevronDown className="h-3 w-3 text-gray-500" />
+                    <ChevronDown className="h-3 w-3 text-[var(--color-ink)]/50 dark:text-[var(--color-paper)]/50" />
                   </button>
 
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                      <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
-                        <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Signed in as</p>
-                        <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{currentUser.name}</p>
+                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                      <div className="p-4 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/50 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
+                        <p className="text-xs font-medium text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60">Signed in as</p>
+                        <p className="font-bold text-sm text-[var(--color-ink)] dark:text-[var(--color-paper)] truncate">{currentUser.name}</p>
                         <div className="mt-1.5 flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-950/70 text-yellow-700 dark:text-yellow-400 uppercase tracking-wider border border-yellow-200 dark:border-yellow-900">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--color-gold-soft)]/20 text-[var(--color-gold)] uppercase tracking-wider border border-[var(--color-gold)]/30">
                             {currentUser.role.replace("_", " ")}
                           </span>
                           {currentUser.isVerifiedSeller && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-blue-900">
+                            <span className="seal">
                               VERIFIED SELLER
                             </span>
                           )}
                         </div>
                       </div>
 
-                      <div className="p-2 border-b border-gray-100 dark:border-gray-800">
-                        <p className="text-[10px] font-bold text-gray-400 dark:text-gray-500 px-3 py-1.5 uppercase tracking-wider flex items-center gap-1">
-                          <Sparkles className="h-3 w-3 text-yellow-500" /> Role Testing Simulator
+                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
+                        <p className="text-[10px] font-bold text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 px-3 py-1.5 uppercase tracking-wider flex items-center gap-1">
+                          <Sparkles className="h-3 w-3 text-[var(--color-gold)]" /> Role Testing Simulator
                         </p>
                         <div className="space-y-0.5">
                           {users.filter(u => u.id !== "guest").map((u) => (
@@ -354,13 +354,13 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                               onClick={() => { switchUser(u.id); setShowProfileDropdown(false); }}
                               className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs rounded-xl transition-all ${
                                 currentUser.id === u.id
-                                  ? "bg-yellow-500 text-slate-900 font-bold"
-                                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                  ? "bg-[var(--color-gold)] text-[var(--color-paper)] font-bold"
+                                  : "text-[var(--color-ink)] dark:text-[var(--color-paper)] hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)]"
                               }`}
                             >
                               <div className="truncate">
                                 <span className="block truncate">{u.name}</span>
-                                <span className={`text-[9px] font-normal uppercase ${currentUser.id === u.id ? "text-slate-800" : "text-gray-400 dark:text-gray-500"}`}>
+                                <span className={`text-[9px] font-normal uppercase ${currentUser.id === u.id ? "text-[var(--color-paper)]/80" : "text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40"}`}>
                                   {u.role.replace("_", " ")} {u.id === "user-admin" ? "(Bole Olympia Plaza)" : ""}
                                 </span>
                               </div>
@@ -370,27 +370,27 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                         </div>
                       </div>
 
-                      <div className="p-2 border-b border-gray-100 dark:border-gray-800 bg-amber-500/5">
+                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-gold)]/5">
                         <button
                           onClick={() => { setActiveTab("signup"); setShowProfileDropdown(false); }}
-                          className="w-full bg-slate-900 hover:bg-slate-850 dark:bg-yellow-500 dark:hover:bg-yellow-600 text-white dark:text-slate-900 font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                          className="w-full bg-[var(--color-ink)] hover:bg-[var(--color-ink-soft)] text-white dark:bg-[var(--color-gold)] dark:hover:bg-[var(--color-gold-soft)] dark:text-[var(--color-ink)] font-semibold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
                         >
                           <UserPlus className="h-3.5 w-3.5" /> Sign Up New Account
                         </button>
                       </div>
 
-                      <div className="p-2 border-b border-gray-100 dark:border-gray-800 bg-red-500/5">
+                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-danger)]/5">
                         <button
                           onClick={() => { signOut(); setShowProfileDropdown(false); }}
-                          className="w-full bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                          className="w-full bg-[var(--color-danger)] hover:bg-[var(--color-danger)]/90 text-white font-semibold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
                         >
                           <LogOut className="h-3.5 w-3.5" /> Sign Out
                         </button>
                       </div>
 
-                      <div className="p-2 bg-gray-50 dark:bg-gray-800/20 text-center">
-                        <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                          EthioPhone Auction Demo v1.0
+                      <div className="p-2 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/20 text-center">
+                        <p className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 font-medium">
+                          ETPhone Auction v1.0
                         </p>
                       </div>
                     </div>
@@ -406,7 +406,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
         <div className="md:hidden pb-4 pt-1">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="h-4 w-4 text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40" />
             </div>
             <input
               type="text"
@@ -416,7 +416,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 setSearchQuery(e.target.value);
                 if (activeTab !== "home") setActiveTab("home");
               }}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 text-xs transition-all"
+              className="block w-full pl-10 pr-3 py-2 border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-xl bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] placeholder-[var(--color-ink)]/40 dark:placeholder-[var(--color-paper)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] focus:border-[var(--color-gold)] text-xs transition-all"
               id="search-input-field-mobile"
             />
           </div>
@@ -424,7 +424,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
 
         {/* Sub-header Filter bar (Only on Home screen) */}
         {activeTab === "home" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 dark:border-gray-800/80 py-3 mt-1 overflow-x-auto select-none no-scrollbar">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] py-3 mt-1 overflow-x-auto select-none no-scrollbar">
             
             {/* Brand filter pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
@@ -434,8 +434,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                   onClick={() => setSelectedBrand(b === "All" ? "" : b)}
                   className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                     (b === "All" && !selectedBrand) || selectedBrand === b
-                      ? "bg-yellow-400 dark:bg-yellow-500 text-slate-900 shadow-sm"
-                      : "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+                      ? "bg-[var(--color-gold)] text-[var(--color-paper)] shadow-sm"
+                      : "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 hover:bg-[var(--color-paper-soft)]/80 dark:hover:bg-[var(--color-ink-soft)]/80"
                   }`}
                 >
                   {b}
@@ -450,9 +450,9 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               <select
                 value={selectedRegion}
                 onChange={(e) => setSelectedRegion(e.target.value)}
-                className="text-xs font-semibold bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                className="text-xs font-semibold bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)]"
               >
-                <option value="">🗺️ All Regions</option>
+                <option value="">All Regions</option>
                 {regions.slice(1).map((r) => (
                   <option key={r} value={r}>
                     {r}
@@ -461,15 +461,15 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               </select>
 
               {/* Status Tabs */}
-              <div className="flex border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden p-0.5 bg-gray-50 dark:bg-gray-800">
+              <div className="flex border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-lg overflow-hidden p-0.5 bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)]">
                 {statuses.map((s) => (
                   <button
                     key={s.value}
                     onClick={() => setSelectedStatus(s.value)}
-                    className={`px-2.5 py-1 text-[10px] sm:text-xs font-bold rounded-md transition-all ${
+                    className={`px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-md transition-all ${
                       selectedStatus === s.value
-                        ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                        : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                        ? "bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-[var(--color-paper)] shadow-sm"
+                        : "text-[var(--color-ink)]/50 dark:text-[var(--color-paper)]/50 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)]"
                     }`}
                   >
                     {s.label}

@@ -6,7 +6,26 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { PhoneListing, AuctionStatus, PhoneCondition, UserRole } from "../types";
-import { X, Clock, MapPin, CheckCircle, ShieldCheck, Heart, Send, AlertTriangle, ChevronLeft, ChevronRight, Award, MessageSquare, Shield, Trash2 } from "lucide-react";
+import {
+  X,
+  Clock,
+  MapPin,
+  CheckCircle,
+  ShieldCheck,
+  Heart,
+  Send,
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquare,
+  Shield,
+  Smartphone,
+  Lock,
+  Star,
+  User,
+  Check,
+  PartyPopper
+} from "lucide-react";
 
 export default function ListingDetail({ listing, onClose, onOpenShop }: { listing: PhoneListing; onClose: () => void; onOpenShop: (shopId: string) => void }) {
   const {
@@ -216,7 +235,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
   // Admin Action Handlers
   const handleAdminDeleteListing = () => {
-    if (window.confirm("⚠️ WARNING: Are you absolutely sure you want to permanently delete this phone listing and all its bids? This action cannot be undone.")) {
+    if (window.confirm("Are you absolutely sure you want to permanently delete this phone listing and all its bids? This action cannot be undone.")) {
       deleteListing(listing.id);
       onClose();
     }
@@ -260,18 +279,18 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
   const score = getTrustScore();
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex justify-center p-2 sm:p-4 select-none">
-      <div className="bg-white dark:bg-gray-900 w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col my-auto max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center p-2 sm:p-4 select-none">
+      <div className="bg-[var(--color-paper)] text-[var(--color-ink)] w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-[var(--color-paper-soft)] flex flex-col my-auto max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header toolbar */}
-        <div className="p-4 sm:p-5 border-b border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 flex items-center justify-between z-10">
+        <div className="p-4 sm:p-5 border-b border-[var(--color-paper-soft)] bg-[var(--color-paper)] sticky top-0 flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
-            <span className="text-yellow-600 dark:text-yellow-400 font-extrabold text-xs tracking-wider uppercase bg-yellow-50 dark:bg-yellow-950/40 px-2.5 py-1 rounded-full border border-yellow-200 dark:border-yellow-900 flex items-center gap-1">
+            <span className="seal text-xs px-3 py-1 flex items-center gap-1.5 font-bold">
               <ShieldCheck className="h-3.5 w-3.5" />
               Verified Smartphone Auction
             </span>
             {listing.status === AuctionStatus.ENDED && (
-              <span className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs px-2.5 py-1 rounded-full font-bold">
+              <span className="bg-[var(--color-paper-soft)] text-[var(--color-ink)] text-xs px-2.5 py-1 rounded-full font-bold">
                 Auction Closed
               </span>
             )}
@@ -282,8 +301,8 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               onClick={() => toggleWatchlist(listing.id)}
               className={`p-2 rounded-xl border transition-all ${
                 isWatched
-                  ? "bg-red-500 border-red-500 text-white"
-                  : "bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 border-gray-200 dark:border-gray-700 text-gray-500"
+                  ? "bg-[var(--color-danger)] border-[var(--color-danger)] text-white"
+                  : "bg-[var(--color-paper-soft)] hover:brightness-95 border-transparent text-[var(--color-ink)]/70"
               }`}
               id={`watchlist-detail-${listing.id}`}
             >
@@ -292,7 +311,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all"
+              className="p-2 text-[var(--color-ink)]/60 hover:text-[var(--color-ink)] hover:bg-[var(--color-paper-soft)] rounded-xl transition-all"
               id="detail-close-btn"
             >
               <X className="h-5 w-5" />
@@ -305,7 +324,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
           
           {isEditing ? (
             <form onSubmit={handleSaveChanges} className="space-y-6">
-              <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/60 p-4 rounded-2xl flex items-center gap-2 text-red-800 dark:text-red-400 text-xs font-bold mb-4">
+              <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 p-4 rounded-2xl flex items-center gap-2 text-[var(--color-danger)] text-xs font-bold mb-4">
                 <Shield className="h-4.5 w-4.5" />
                 EthioPhone Admin - Editing Mode
               </div>
@@ -314,28 +333,28 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                 
                 {/* Section 1: Device Specs */}
                 <div className="space-y-4">
-                  <h3 className="font-sans font-black text-sm text-gray-900 dark:text-white uppercase tracking-wider border-b pb-2">
+                  <h3 className="font-sans font-bold text-sm text-[var(--color-ink)] uppercase tracking-wider border-b pb-2">
                     Device Specifications
                   </h3>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Brand</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Brand</label>
                       <input
                         type="text"
                         value={editedBrand}
                         onChange={(e) => setEditedBrand(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Model</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Model</label>
                       <input
                         type="text"
                         value={editedModel}
                         onChange={(e) => setEditedModel(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
@@ -343,34 +362,34 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Storage</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Storage</label>
                       <input
                         type="text"
                         value={editedStorage}
                         onChange={(e) => setEditedStorage(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">RAM</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">RAM</label>
                       <input
                         type="text"
                         value={editedRam}
                         onChange={(e) => setEditedRam(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Battery Health (%)</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Battery Health (%)</label>
                       <input
                         type="number"
                         min="50"
                         max="100"
                         value={editedBattery}
                         onChange={(e) => setEditedBattery(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
@@ -378,11 +397,11 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Condition</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Condition</label>
                       <select
                         value={editedCondition}
                         onChange={(e) => setEditedCondition(e.target.value as PhoneCondition)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                       >
                         <option value={PhoneCondition.NEW}>Brand New</option>
                         <option value={PhoneCondition.EXCELLENT}>Excellent</option>
@@ -392,24 +411,24 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                       </select>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">IMEI Number</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">IMEI Number</label>
                       <input
                         type="text"
                         value={editedImei}
                         onChange={(e) => setEditedImei(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white font-mono"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)] font-mono"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Condition details / Aesthetic description</label>
+                    <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Condition details / Aesthetic description</label>
                     <textarea
                       rows={3}
                       value={editedCondDetails}
                       onChange={(e) => setEditedCondDetails(e.target.value)}
-                      className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                      className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                       required
                     />
                   </div>
@@ -417,28 +436,28 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                 {/* Section 2: Bidding Details */}
                 <div className="space-y-4">
-                  <h3 className="font-sans font-black text-sm text-gray-900 dark:text-white uppercase tracking-wider border-b pb-2">
+                  <h3 className="font-sans font-bold text-sm text-[var(--color-ink)] uppercase tracking-wider border-b pb-2">
                     Bidding & Auction Setup
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Starting Bid (ETB)</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Starting Bid (ETB)</label>
                       <input
                         type="number"
                         value={editedStartingBid}
                         onChange={(e) => setEditedStartingBid(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Current Bid (ETB)</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Current Bid (ETB)</label>
                       <input
                         type="number"
                         value={editedCurrentBid}
                         onChange={(e) => setEditedCurrentBid(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
@@ -446,33 +465,33 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Min Increment (ETB)</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Min Increment (ETB)</label>
                       <input
                         type="number"
                         value={editedMinIncrement}
                         onChange={(e) => setEditedMinIncrement(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Buy Now Price (ETB, Optional)</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Buy Now Price (ETB, Optional)</label>
                       <input
                         type="number"
                         value={editedBuyNow}
                         onChange={(e) => setEditedBuyNow(e.target.value)}
-                        className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                         placeholder="e.g. 110000"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Auction Status</label>
+                    <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Auction Status</label>
                     <select
                       value={editedStatus}
                       onChange={(e) => setEditedStatus(e.target.value as AuctionStatus)}
-                      className="w-full text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                      className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                     >
                       <option value={AuctionStatus.UPCOMING}>Upcoming</option>
                       <option value={AuctionStatus.LIVE}>Live</option>
@@ -485,14 +504,14 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               </div>
 
               {/* Image Manager Section */}
-              <div className="space-y-4 border-t pt-6">
-                <h3 className="font-sans font-black text-sm text-gray-900 dark:text-white uppercase tracking-wider">
+              <div className="space-y-4 border-t border-[var(--color-paper-soft)] pt-6">
+                <h3 className="font-sans font-bold text-sm text-[var(--color-ink)] uppercase tracking-wider">
                   Manage Phone Images ({editedImages.length})
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {editedImages.map((img, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800/50 p-2 rounded-xl border border-gray-150 dark:border-gray-800">
+                    <div key={idx} className="flex items-center gap-2 bg-[var(--color-paper-soft)] p-2 rounded-xl border border-transparent">
                       <img src={img} alt="preview" className="h-10 w-10 object-cover rounded-md" referrerPolicy="no-referrer" />
                       <input
                         type="text"
@@ -502,12 +521,12 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                           updated[idx] = e.target.value;
                           setEditedImages(updated);
                         }}
-                        className="flex-1 text-[10px] bg-white dark:bg-gray-900 border border-gray-250 dark:border-gray-750 rounded p-1.5 focus:outline-none text-gray-800 dark:text-gray-200"
+                        className="flex-1 text-[10px] bg-[var(--color-paper)] border border-[var(--color-paper-soft)] rounded p-1.5 focus:outline-none text-[var(--color-ink)]"
                       />
                       <button
                         type="button"
                         onClick={() => setEditedImages(editedImages.filter((_, i) => i !== idx))}
-                        className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 rounded-lg"
+                        className="text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 p-2 rounded-lg"
                       >
                         <X className="h-4 w-4" />
                       </button>
@@ -520,13 +539,13 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     type="text"
                     value={newImageUrl}
                     onChange={(e) => setNewImageUrl(e.target.value)}
-                    className="flex-1 text-xs bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-yellow-500 text-gray-900 dark:text-white"
+                    className="flex-1 text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                     placeholder="Paste unsplash or image URL here to upload/add..."
                   />
                   <button
                     type="button"
                     onClick={handleAddImage}
-                    className="bg-yellow-400 hover:bg-yellow-500 text-slate-900 px-4 rounded-xl text-xs font-bold transition-all"
+                    className="bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] px-4 rounded-xl text-xs font-bold transition-all"
                   >
                     Add Image URL
                   </button>
@@ -534,23 +553,23 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               </div>
 
               {/* Manage Bids (Bidding Details) Section */}
-              <div className="space-y-4 border-t pt-6">
-                <h3 className="font-sans font-black text-sm text-gray-900 dark:text-white uppercase tracking-wider">
+              <div className="space-y-4 border-t border-[var(--color-paper-soft)] pt-6">
+                <h3 className="font-sans font-bold text-sm text-[var(--color-ink)] uppercase tracking-wider">
                   Manage Bids & Bidding History ({listingBids.length})
                 </h3>
 
                 {listingBids.length === 0 ? (
-                  <p className="text-xs text-gray-500 dark:text-gray-400">No bids placed yet on this auction.</p>
+                  <p className="text-xs text-[var(--color-ink)]/60">No bids placed yet on this auction.</p>
                 ) : (
                   <div className="space-y-2.5 max-h-60 overflow-y-auto pr-2">
                     {listingBids.map((b) => (
-                      <div key={b.id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/40 p-3 rounded-xl border border-gray-150 dark:border-gray-800 text-xs">
+                      <div key={b.id} className="flex items-center justify-between bg-[var(--color-paper-soft)] p-3 rounded-xl border border-transparent text-xs">
                         <div>
-                          <p className="font-bold text-gray-800 dark:text-gray-200">{b.bidderName}</p>
-                          <p className="text-[10px] text-gray-500">{new Date(b.timestamp).toLocaleString()}</p>
+                          <p className="font-bold text-[var(--color-ink)]">{b.bidderName}</p>
+                          <p className="text-[10px] text-[var(--color-ink)]/60">{new Date(b.timestamp).toLocaleString()}</p>
                         </div>
                         <div className="flex items-center gap-3">
-                          <span className="font-bold text-gray-400">ETB</span>
+                          <span className="font-bold text-[var(--color-ink)]/60">ETB</span>
                           <input
                             type="number"
                             defaultValue={b.amount}
@@ -560,7 +579,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                                 updateBidAmount(b.id, val);
                               }
                             }}
-                            className="w-28 text-right bg-white dark:bg-gray-900 border border-gray-255 dark:border-gray-755 rounded p-1.5 font-black text-gray-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                            className="w-28 text-right bg-[var(--color-paper)] border border-[var(--color-paper-soft)] rounded p-1.5 font-display font-bold text-[var(--color-ink)] focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)]"
                           />
                           <button
                             type="button"
@@ -569,7 +588,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                                 deleteBid(b.id);
                               }
                             }}
-                            className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 p-1.5 rounded"
+                            className="text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 p-1.5 rounded"
                             title="Delete Bid"
                           >
                             <X className="h-4 w-4" />
@@ -582,17 +601,17 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               </div>
 
               {/* Save/Cancel Action Footer */}
-              <div className="flex justify-end gap-3 border-t pt-6">
+              <div className="flex justify-end gap-3 border-t border-[var(--color-paper-soft)] pt-6">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}
-                  className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-xl text-xs font-bold transition-all"
+                  className="bg-[var(--color-paper-soft)] hover:brightness-95 text-[var(--color-ink)] px-6 py-3 rounded-xl text-xs font-bold transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl text-xs font-bold transition-all shadow-md"
+                  className="bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] px-8 py-3 rounded-xl text-xs font-bold transition-all shadow-md"
                 >
                   Save Changes
                 </button>
@@ -602,25 +621,25 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
           ) : (
             <>
               {currentUser.role === UserRole.ADMIN && (
-                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/60 p-4 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
+                <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 p-4 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-black text-red-800 dark:text-red-400 uppercase tracking-widest flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-[var(--color-danger)] uppercase tracking-widest flex items-center gap-1.5">
                       <Shield className="h-4.5 w-4.5" /> EthioPhone Admin Moderation Control
                     </p>
-                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">You have authorized permissions to edit phone specifications, manage images, delete listing, or modify bidding details/bids.</p>
+                    <p className="text-[11px] text-[var(--color-ink)]/70 mt-1">You have authorized permissions to edit phone specifications, manage images, delete listing, or modify bidding details/bids.</p>
                   </div>
                   <div className="flex gap-2.5">
                     <button
                       type="button"
                       onClick={() => setIsEditing(true)}
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5"
+                      className="bg-[var(--color-danger)] hover:brightness-110 text-white text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5"
                     >
                       Edit Listing & Images
                     </button>
                     <button
                       type="button"
                       onClick={handleAdminDeleteListing}
-                      className="bg-gray-100 hover:bg-red-100 dark:bg-gray-800 dark:hover:bg-red-950/40 text-red-600 border border-transparent hover:border-red-200 dark:hover:border-red-900 text-xs px-4 py-2 rounded-xl font-bold transition-all"
+                      className="bg-[var(--color-paper-soft)] hover:bg-[var(--color-danger)]/10 text-[var(--color-danger)] text-xs px-4 py-2 rounded-xl font-bold transition-all"
                     >
                       Delete Auction
                     </button>
@@ -634,7 +653,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
             <div className="lg:col-span-7 space-y-6">
               
               {/* Image Gallery */}
-              <div className="relative rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-950 border border-gray-150 dark:border-gray-800/80 group">
+              <div className="relative rounded-2xl overflow-hidden bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] group">
                 <div className="h-80 sm:h-96 flex items-center justify-center relative">
                   <img
                     src={listing.images[activeImgIdx] || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"}
@@ -647,13 +666,13 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     <>
                       <button
                         onClick={() => setActiveImgIdx((prev) => (prev === 0 ? listing.images.length - 1 : prev - 1))}
-                        className="absolute left-4 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute left-4 p-2 rounded-full bg-[var(--color-ink)]/50 text-white hover:bg-[var(--color-ink)]/80 transition-all opacity-0 group-hover:opacity-100"
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => setActiveImgIdx((prev) => (prev === listing.images.length - 1 ? 0 : prev + 1))}
-                        className="absolute right-4 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute right-4 p-2 rounded-full bg-[var(--color-ink)]/50 text-white hover:bg-[var(--color-ink)]/80 transition-all opacity-0 group-hover:opacity-100"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
@@ -663,13 +682,13 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                 {/* Thumbnail strip */}
                 {listing.images.length > 1 && (
-                  <div className="flex p-3 gap-2 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 overflow-x-auto">
+                  <div className="flex p-3 gap-2 border-t border-[var(--color-paper-soft)] bg-[var(--color-paper)] overflow-x-auto">
                     {listing.images.map((img, idx) => (
                       <button
                         key={idx}
                         onClick={() => setActiveImgIdx(idx)}
                         className={`h-12 w-16 rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${
-                          activeImgIdx === idx ? "border-yellow-400 scale-105" : "border-transparent"
+                          activeImgIdx === idx ? "border-[var(--color-gold)] scale-105" : "border-transparent"
                         }`}
                       >
                         <img src={img} alt="thumb" className="w-full h-full object-cover" />
@@ -680,49 +699,49 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               </div>
 
               {/* Specification Table */}
-              <div className="bg-gray-50 dark:bg-gray-800/40 p-5 rounded-2xl border border-gray-100 dark:border-gray-800/80">
-                <h4 className="font-sans font-extrabold text-sm text-gray-900 dark:text-white uppercase tracking-wider mb-4">
-                  📱 Device Specifications
+              <div className="bg-[var(--color-paper-soft)] p-5 rounded-2xl border border-[var(--color-paper-soft)]">
+                <h4 className="font-display font-bold text-sm text-[var(--color-ink)] uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <Smartphone className="h-4 w-4 text-[var(--color-gold)]" /> Device Specifications
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">Brand / Model</p>
-                    <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">{listing.brand}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">{listing.model}</p>
+                  <div className="bg-[var(--color-paper)] p-3 rounded-xl border border-[var(--color-paper-soft)]">
+                    <p className="text-[10px] text-[var(--color-ink)]/60 font-bold uppercase">Brand / Model</p>
+                    <p className="text-xs font-bold text-[var(--color-ink)] mt-0.5">{listing.brand}</p>
+                    <p className="text-[10px] text-[var(--color-ink)]/60 mt-0.5">{listing.model}</p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">Storage Capacity</p>
-                    <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">{listing.storage}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">Built-in Flash</p>
+                  <div className="bg-[var(--color-paper)] p-3 rounded-xl border border-[var(--color-paper-soft)]">
+                    <p className="text-[10px] text-[var(--color-ink)]/60 font-bold uppercase">Storage Capacity</p>
+                    <p className="text-xs font-bold text-[var(--color-ink)] mt-0.5">{listing.storage}</p>
+                    <p className="text-[10px] text-[var(--color-ink)]/60 mt-0.5">Built-in Flash</p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">System RAM</p>
-                    <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">{listing.ram}</p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">LPDDR standard</p>
+                  <div className="bg-[var(--color-paper)] p-3 rounded-xl border border-[var(--color-paper-soft)]">
+                    <p className="text-[10px] text-[var(--color-ink)]/60 font-bold uppercase">System RAM</p>
+                    <p className="text-xs font-bold text-[var(--color-ink)] mt-0.5">{listing.ram}</p>
+                    <p className="text-[10px] text-[var(--color-ink)]/60 mt-0.5">LPDDR standard</p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">Battery Health</p>
-                    <p className={`text-xs font-bold mt-0.5 ${listing.batteryHealth >= 85 ? "text-green-600 dark:text-green-400" : "text-yellow-600"}`}>
+                  <div className="bg-[var(--color-paper)] p-3 rounded-xl border border-[var(--color-paper-soft)]">
+                    <p className="text-[10px] text-[var(--color-ink)]/60 font-bold uppercase">Battery Health</p>
+                    <p className={`text-xs font-bold mt-0.5 ${listing.batteryHealth >= 85 ? "text-[var(--color-verified)]" : "text-[var(--color-gold)]"}`}>
                       {listing.batteryHealth}%
                     </p>
-                    <p className="text-[10px] text-gray-500 mt-0.5">Original Capacity</p>
+                    <p className="text-[10px] text-[var(--color-ink)]/60 mt-0.5">Original Capacity</p>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700 col-span-2">
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">IMEI Serial (Ethio Telecom)</p>
+                  <div className="bg-[var(--color-paper)] p-3 rounded-xl border border-[var(--color-paper-soft)] col-span-2">
+                    <p className="text-[10px] text-[var(--color-ink)]/60 font-bold uppercase">IMEI Serial (Ethio Telecom)</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-xs font-mono font-bold text-gray-800 dark:text-gray-200 tracking-wider">
+                      <span className="text-xs font-mono font-bold text-[var(--color-ink)] tracking-wider">
                         {listing.imei}
                       </span>
                       {listing.isImeiVerified ? (
-                        <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-md font-bold">
+                        <span className="seal text-[9px] px-2 py-0.5">
                           VERIFIED PASS
                         </span>
                       ) : (
-                        <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-md font-bold">
+                        <span className="text-[9px] bg-[var(--color-gold)]/20 text-[var(--color-gold)] px-1.5 py-0.5 rounded-md font-bold">
                           PENDING CHECK
                         </span>
                       )}
@@ -730,12 +749,12 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700/60">
-                  <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold uppercase">Accessories Included</p>
+                <div className="mt-4 pt-4 border-t border-[var(--color-paper-soft)]">
+                  <p className="text-[10px] text-[var(--color-ink)]/60 font-bold uppercase">Accessories Included</p>
                   <div className="flex flex-wrap gap-1.5 mt-2">
                     {listing.accessories.map((acc, index) => (
-                      <span key={index} className="text-xs bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 px-3 py-1 rounded-xl">
-                        ✓ {acc}
+                      <span key={index} className="text-xs bg-[var(--color-paper)] text-[var(--color-ink)] border border-[var(--color-paper-soft)] px-3 py-1 rounded-xl flex items-center gap-1">
+                        <Check className="h-3 w-3 text-[var(--color-gold)]" /> {acc}
                       </span>
                     ))}
                   </div>
@@ -744,10 +763,10 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
               {/* Detailed condition description */}
               <div>
-                <h4 className="font-sans font-extrabold text-sm text-gray-900 dark:text-white mb-2">
+                <h4 className="font-display font-bold text-sm text-[var(--color-ink)] mb-2">
                   Condition & Aesthetic State
                 </h4>
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-gray-800/10 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                <p className="text-sm text-[var(--color-ink)]/80 leading-relaxed bg-[var(--color-paper-soft)] p-4 rounded-xl border border-transparent">
                   {listing.conditionDetails}
                 </p>
               </div>
@@ -758,44 +777,44 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
             <div className="lg:col-span-5 space-y-6">
               
               {/* LIVE BIDDING CARD */}
-              <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 h-32 w-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="bg-[var(--color-ink)] text-white rounded-3xl p-6 border border-[var(--color-ink-soft)] shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 h-32 w-32 bg-[var(--color-gold)]/10 rounded-full blur-3xl pointer-events-none"></div>
                 
                 {/* Timer details */}
                 <div className="flex items-center justify-between gap-4 mb-5">
                   <div>
-                    <span className="text-[10px] text-yellow-400 uppercase tracking-widest font-black">Live countdown</span>
-                    <p className="text-2xl font-black text-white flex items-center gap-1.5 mt-1">
-                      <Clock className="h-5 w-5 text-red-500 animate-pulse" />
+                    <span className="text-[10px] text-[var(--color-gold)] uppercase tracking-widest font-bold">Live countdown</span>
+                    <p className="text-2xl font-display font-black text-white flex items-center gap-1.5 mt-1">
+                      <Clock className="h-5 w-5 text-[var(--color-danger)] animate-pulse" />
                       {timeLeft}
                     </p>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold">Views Count</span>
+                    <span className="text-[10px] text-white/60 uppercase font-bold">Views Count</span>
                     <p className="text-sm font-bold text-white mt-1">{listing.views} visits</p>
                   </div>
                 </div>
 
                 {/* Price Display */}
-                <div className="bg-slate-800/60 p-4 rounded-2xl mb-5 border border-slate-700/50">
+                <div className="bg-[var(--color-ink-soft)] p-4 rounded-2xl mb-5 border border-white/10">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-slate-400 font-bold">CURRENT BID</p>
-                      <p className="text-3xl font-black text-yellow-400 mt-1">
+                      <p className="text-xs text-white/60 font-bold">CURRENT BID</p>
+                      <p className="text-3xl font-display font-black text-[var(--color-gold)] mt-1">
                         ETB {listing.currentBid.toLocaleString()}
                       </p>
                     </div>
-                    <div className="text-right bg-slate-800 border border-slate-700 px-3.5 py-1.5 rounded-xl">
-                      <p className="text-xs text-slate-400 font-bold">Bids Placed</p>
-                      <p className="text-base font-black text-white mt-0.5">{bidCount}</p>
+                    <div className="text-right bg-[var(--color-ink)] border border-white/10 px-3.5 py-1.5 rounded-xl">
+                      <p className="text-xs text-white/60 font-bold">Bids Placed</p>
+                      <p className="text-base font-display font-black text-white mt-0.5">{bidCount}</p>
                     </div>
                   </div>
 
                   {currentHighestBidder && (
-                    <div className="mt-3.5 pt-3.5 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+                    <div className="mt-3.5 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs text-white/70">
                       <span>Highest Bidder:</span>
                       <span className="font-bold text-white flex items-center gap-1">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                        <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-verified)]"></span>
                         {currentHighestBidder.bidderId === currentUser.id ? "You (Winning)" : currentHighestBidder.bidderName}
                       </span>
                     </div>
@@ -807,7 +826,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                   <form onSubmit={handlePlaceBid} className="space-y-3">
                     <div className="flex items-center gap-2">
                       <div className="relative flex-1">
-                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 font-extrabold text-sm">
+                        <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-white/50 font-bold text-sm">
                           ETB
                         </span>
                         <input
@@ -816,32 +835,32 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                           min={minNextBid}
                           value={bidValue}
                           onChange={(e) => setBidValue(e.target.value)}
-                          className="w-full bg-slate-800 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white font-black focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                          className="w-full bg-[var(--color-ink-soft)] border border-white/20 rounded-xl py-3 pl-12 pr-4 text-white font-display font-bold focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
                           placeholder={minNextBid.toString()}
                         />
                       </div>
                       <button
                         type="submit"
-                        className="bg-yellow-400 hover:bg-yellow-500 text-slate-900 font-extrabold px-6 py-3 rounded-xl text-sm shadow-md transition-all flex items-center gap-1.5 active:scale-95"
+                        className="bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] font-bold px-6 py-3 rounded-xl text-sm shadow-md transition-all flex items-center gap-1.5 active:scale-95"
                         id="submit-bid-btn"
                       >
                         Place Bid
                       </button>
                     </div>
                     
-                    <p className="text-[10px] text-slate-400">
-                      Minimum required increment is <span className="font-bold text-white">ETB {listing.minIncrement.toLocaleString()}</span>. Bid must be at least <span className="font-bold text-yellow-400">ETB {minNextBid.toLocaleString()}</span>.
+                    <p className="text-[10px] text-white/60">
+                      Minimum required increment is <span className="font-bold text-white">ETB {listing.minIncrement.toLocaleString()}</span>. Bid must be at least <span className="font-bold text-[var(--color-gold)]">ETB {minNextBid.toLocaleString()}</span>.
                     </p>
 
                     {bidError && (
-                      <p className="text-xs text-red-400 font-medium bg-red-950/40 p-2.5 rounded-lg border border-red-900/50">
+                      <p className="text-xs text-[var(--color-danger)] font-medium bg-[var(--color-danger)]/10 p-2.5 rounded-lg border border-[var(--color-danger)]/30">
                         {bidError}
                       </p>
                     )}
 
                     {bidSuccess && (
-                      <p className="text-xs text-green-400 font-semibold bg-green-950/40 p-2.5 rounded-lg border border-green-900/50">
-                        🎉 Bid successfully recorded! You are currently the leading bidder.
+                      <p className="text-xs text-[var(--color-verified)] font-semibold bg-[var(--color-verified)]/10 p-2.5 rounded-lg border border-[var(--color-verified)]/30 flex items-center gap-1.5">
+                        <PartyPopper className="h-4 w-4" /> Bid successfully recorded! You are currently the leading bidder.
                       </p>
                     )}
                   </form>
@@ -849,18 +868,18 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                 {/* If it's your own phone listing */}
                 {listing.sellerId === currentUser.id && (
-                  <div className="bg-slate-800/40 text-center p-4 rounded-2xl border border-slate-700/50 text-slate-300 text-xs">
-                    🔒 You own this listing. Monitor incoming bids from your Seller Dashboard.
+                  <div className="bg-[var(--color-ink-soft)] text-center p-4 rounded-2xl border border-white/10 text-white/80 text-xs flex items-center justify-center gap-1.5">
+                    <Lock className="h-4 w-4 text-[var(--color-gold)]" /> You own this listing. Monitor incoming bids from your Seller Dashboard.
                   </div>
                 )}
 
                 {/* Buy Now alternative */}
                 {listing.status === AuctionStatus.LIVE && listing.buyNowPrice && listing.sellerId !== currentUser.id && (
-                  <div className="mt-5 pt-5 border-t border-slate-800">
-                    <p className="text-xs text-slate-400 mb-2 font-bold text-center">or skip the bidding entirely</p>
+                  <div className="mt-5 pt-5 border-t border-white/10">
+                    <p className="text-xs text-white/60 mb-2 font-bold text-center">or skip the bidding entirely</p>
                     <button
                       onClick={handleBuyNow}
-                      className="w-full bg-slate-800 border border-slate-700 hover:bg-slate-750 hover:border-yellow-500/50 hover:text-yellow-400 text-white font-black py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2"
+                      className="w-full bg-[var(--color-ink-soft)] border border-white/20 hover:border-[var(--color-gold)] hover:text-[var(--color-gold)] text-white font-bold py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2"
                       id="buy-now-btn"
                     >
                       Buy Instantly for ETB {listing.buyNowPrice.toLocaleString()}
@@ -870,80 +889,83 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                 {/* Ended / Closed display */}
                 {listing.status === AuctionStatus.ENDED && (
-                  <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center">
-                    <span className="text-xs font-bold text-slate-300">Auction Ended</span>
+                  <div className="bg-[var(--color-ink-soft)] p-4 rounded-2xl border border-white/10 text-center">
+                    <span className="text-xs font-bold text-white/80">Auction Ended</span>
                     {listing.winnerId ? (
-                      <div className="mt-2 text-yellow-400 font-extrabold text-sm">
+                      <div className="mt-2 text-[var(--color-gold)] font-bold text-sm">
                         Winner: {listing.winnerId === currentUser.id ? "You won this smartphone!" : users.find(u => u.id === listing.winnerId)?.name}
                       </div>
                     ) : (
-                      <p className="text-slate-400 mt-1 text-xs">No bids were placed on this device.</p>
+                      <p className="text-white/60 mt-1 text-xs">No bids were placed on this device.</p>
                     )}
                   </div>
                 )}
 
                 {listing.status === AuctionStatus.COMPLETED && (
-                  <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 text-center text-green-400 text-xs font-bold">
-                    🤝 Smartphone has been successfully inspected, paid in person, and picked up!
+                  <div className="bg-[var(--color-ink-soft)] p-4 rounded-2xl border border-white/10 text-center text-[var(--color-verified)] text-xs font-bold flex items-center justify-center gap-1.5">
+                    <Check className="h-4 w-4" /> Smartphone has been successfully inspected, paid in person, and picked up!
                   </div>
                 )}
               </div>
 
               {/* TRUST INDEX BAR */}
-              <div className="border border-gray-150 dark:border-gray-800 p-4 rounded-2xl bg-white dark:bg-gray-900">
+              <div className="border border-[var(--color-paper-soft)] p-4 rounded-2xl bg-[var(--color-paper)]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                    🛡️ Safe Market Trust Index
+                  <span className="text-xs font-bold text-[var(--color-ink)] flex items-center gap-1">
+                    <ShieldCheck className="h-4 w-4 text-[var(--color-verified)]" /> Safe Market Trust Index
                   </span>
-                  <span className="text-xs font-black text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-950/40 px-2 py-0.5 rounded-full">
+                  <span className="seal text-xs px-2 py-0.5">
                     {score}% Secure
                   </span>
                 </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-800 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-[var(--color-paper-soft)] h-2 rounded-full overflow-hidden">
                   <div
-                    className={`h-full rounded-full ${score >= 80 ? "bg-green-500" : score >= 60 ? "bg-yellow-500" : "bg-red-500"}`}
+                    className={`h-full rounded-full ${score >= 80 ? "bg-[var(--color-verified)]" : score >= 60 ? "bg-[var(--color-gold)]" : "bg-[var(--color-danger)]"}`}
                     style={{ width: `${score}%` }}
                   ></div>
                 </div>
-                <div className="flex justify-between text-[9px] text-gray-400 mt-1.5 font-bold uppercase">
+                <div className="flex justify-between text-[9px] text-[var(--color-ink)]/50 mt-1.5 font-bold uppercase">
                   <span>Verify Specs in person</span>
                   <span>IMEI verified by Telecom</span>
                 </div>
               </div>
 
               {/* SELLER CARD */}
-              <div className="border border-gray-150 dark:border-gray-800 p-5 rounded-3xl bg-white dark:bg-gray-900 shadow-sm">
-                <h4 className="font-sans font-extrabold text-sm text-gray-900 dark:text-white uppercase tracking-wider mb-3">
-                  👤 Seller Profile
+              <div className="border border-[var(--color-paper-soft)] p-5 rounded-3xl bg-[var(--color-paper)] shadow-sm">
+                <h4 className="font-display font-bold text-sm text-[var(--color-ink)] uppercase tracking-wider mb-3 flex items-center gap-2">
+                  <User className="h-4 w-4 text-[var(--color-gold)]" /> Seller Profile
                 </h4>
 
                 <div className="flex items-start gap-4">
                   <img
                     src={associatedShop?.logoUrl || sellerUser?.photoUrl || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80"}
                     alt={associatedShop?.name || sellerUser?.name}
-                    className="h-14 w-14 rounded-2xl object-cover border border-gray-100 dark:border-gray-700"
+                    className="h-14 w-14 rounded-2xl object-cover border border-[var(--color-paper-soft)]"
                   />
                   <div className="flex-1">
-                    <h5 className="font-extrabold text-sm text-gray-900 dark:text-white flex items-center gap-1">
+                    <h5 className="font-bold text-sm text-[var(--color-ink)] flex items-center gap-1.5">
                       {associatedShop?.name || sellerUser?.name}
                       {(associatedShop?.isVerified || sellerUser?.isVerifiedSeller) && (
-                        <CheckCircle className="h-4 w-4 fill-current text-blue-500 text-white dark:text-gray-900" />
+                        <span className="seal text-[9px] px-1.5 py-0.2">
+                          Verified Seller
+                        </span>
                       )}
                     </h5>
                     
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
+                    <p className="text-xs text-[var(--color-ink)]/60 mt-0.5 flex items-center gap-1">
+                      <MapPin className="h-3 w-3 text-[var(--color-gold)]" />
                       {associatedShop?.location.city || "Addis Ababa"}, {associatedShop?.location.subCity || "Bole"}
                     </p>
 
-                    <p className="text-xs font-bold text-yellow-600 dark:text-yellow-400 mt-1">
-                      ★ {associatedShop?.rating || sellerUser?.rating || "4.8"} ({associatedShop?.reviews.length || sellerUser?.reviewCount || "0"} ratings)
+                    <p className="text-xs font-bold text-[var(--color-gold)] mt-1 flex items-center gap-1">
+                      <Star className="h-3 w-3 fill-current text-[var(--color-gold)]" />
+                      {associatedShop?.rating || sellerUser?.rating || "4.8"} ({associatedShop?.reviews.length || sellerUser?.reviewCount || "0"} ratings)
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800/60 space-y-2.5">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed bg-gray-50 dark:bg-gray-800/40 p-3 rounded-xl">
+                <div className="mt-4 pt-4 border-t border-[var(--color-paper-soft)] space-y-2.5">
+                  <p className="text-xs text-[var(--color-ink)]/70 leading-relaxed bg-[var(--color-paper-soft)] p-3 rounded-xl">
                     {associatedShop?.description || "Individual seller on EthioPhone Auction. Pay with Telebirr or CBE Birr in-person after inspecting the device."}
                   </p>
 
@@ -951,7 +973,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     {associatedShop && (
                       <button
                         onClick={() => onOpenShop(associatedShop.id)}
-                        className="flex-1 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-gray-200 font-bold py-2 rounded-xl text-xs transition-all text-center"
+                        className="flex-1 border border-[var(--color-paper-soft)] hover:bg-[var(--color-paper-soft)] text-[var(--color-ink)] font-bold py-2 rounded-xl text-xs transition-all text-center"
                       >
                         Visit Shop
                       </button>
@@ -962,8 +984,8 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                         onClick={() => setShowChat(!showChat)}
                         className={`flex-1 flex items-center justify-center gap-1.5 font-bold py-2 rounded-xl text-xs transition-all ${
                           showChat
-                            ? "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                            : "bg-yellow-400 hover:bg-yellow-500 text-slate-900 shadow-sm"
+                            ? "bg-[var(--color-paper-soft)] text-[var(--color-ink)]"
+                            : "bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] shadow-sm"
                         }`}
                         id="open-chat-btn"
                       >
@@ -976,15 +998,15 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                 {/* Direct In-App Chat Panel */}
                 {showChat && (
-                  <div className="mt-4 border border-gray-150 dark:border-gray-800 rounded-2xl overflow-hidden bg-gray-50 dark:bg-gray-900/60 flex flex-col h-72 animate-in slide-in-from-top-3 duration-200">
-                    <div className="p-3 bg-slate-900 text-white text-xs font-bold flex items-center gap-1">
-                      <div className="h-1.5 w-1.5 bg-green-500 rounded-full"></div>
+                  <div className="mt-4 border border-[var(--color-paper-soft)] rounded-2xl overflow-hidden bg-[var(--color-paper-soft)] flex flex-col h-72 animate-in slide-in-from-top-3 duration-200">
+                    <div className="p-3 bg-[var(--color-ink)] text-white text-xs font-bold flex items-center gap-1.5">
+                      <div className="h-1.5 w-1.5 bg-[var(--color-verified)] rounded-full"></div>
                       Live Chat with {associatedShop?.name || sellerUser?.name}
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-3 space-y-2.5 flex flex-col">
                       {chatMessages.length === 0 ? (
-                        <div className="m-auto text-center text-gray-400 dark:text-gray-500 p-4">
+                        <div className="m-auto text-center text-[var(--color-ink)]/50 p-4">
                           <p className="text-[11px] leading-relaxed">No messages yet. Ask about shop location, battery warranty, or in-person pickup hours!</p>
                         </div>
                       ) : (
@@ -993,12 +1015,12 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                             key={msg.id}
                             className={`max-w-[80%] rounded-2xl px-3 py-2 text-xs leading-relaxed ${
                               msg.senderId === currentUser.id
-                                ? "bg-yellow-400 text-slate-900 self-end rounded-tr-none"
-                                : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-100 dark:border-gray-700 self-start rounded-tl-none"
+                                ? "bg-[var(--color-gold)] text-[var(--color-ink)] self-end rounded-tr-none"
+                                : "bg-[var(--color-paper)] text-[var(--color-ink)] border border-[var(--color-paper-soft)] self-start rounded-tl-none"
                             }`}
                           >
                             <p>{msg.text}</p>
-                            <span className="text-[8px] text-gray-400 dark:text-gray-500 block text-right mt-1">
+                            <span className="text-[8px] text-[var(--color-ink)]/40 block text-right mt-1">
                               {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
@@ -1007,15 +1029,15 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                       <div ref={chatBottomRef}></div>
                     </div>
 
-                    <form onSubmit={handleSendMessage} className="p-2 border-t border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-900 flex gap-1.5">
+                    <form onSubmit={handleSendMessage} className="p-2 border-t border-[var(--color-paper-soft)] bg-[var(--color-paper)] flex gap-1.5">
                       <input
                         type="text"
                         placeholder="Type message here..."
                         value={chatText}
                         onChange={(e) => setChatText(e.target.value)}
-                        className="flex-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xs rounded-xl px-3 focus:outline-none focus:ring-1 focus:ring-yellow-500"
+                        className="flex-1 bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] text-xs rounded-xl px-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
                       />
-                      <button type="submit" className="bg-yellow-400 text-slate-900 p-2 rounded-xl">
+                      <button type="submit" className="bg-[var(--color-gold)] text-[var(--color-ink)] p-2 rounded-xl">
                         <Send className="h-3.5 w-3.5" />
                       </button>
                     </form>
@@ -1024,16 +1046,16 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               </div>
 
               {/* FRAUD & COMMUNITY REPORT PANEL */}
-              <div className="bg-red-50/30 dark:bg-red-950/10 border border-red-100 dark:border-red-900/40 rounded-3xl p-5">
+              <div className="bg-[var(--color-danger)]/5 border border-[var(--color-danger)]/20 rounded-3xl p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h5 className="text-xs font-bold text-red-800 dark:text-red-400 uppercase tracking-wider flex items-center gap-1.5">
-                      <AlertTriangle className="h-4.5 w-4.5 text-red-500" /> Community Watchdog
+                    <h5 className="text-xs font-bold text-[var(--color-danger)] uppercase tracking-wider flex items-center gap-1.5">
+                      <AlertTriangle className="h-4.5 w-4.5 text-[var(--color-danger)]" /> Community Watchdog
                     </h5>
-                    <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">Help protect our Addis smartphone market</p>
+                    <p className="text-[10px] text-[var(--color-ink)]/60 mt-0.5">Help protect our Addis smartphone market</p>
                   </div>
                   {listing.reportsCount > 0 && (
-                    <span className="bg-red-100 text-red-700 dark:bg-red-950 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                    <span className="bg-[var(--color-danger)]/10 text-[var(--color-danger)] px-2 py-0.5 rounded text-[10px] font-bold uppercase">
                       {listing.reportsCount} Reports
                     </span>
                   )}
@@ -1042,18 +1064,18 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                 {!showReportForm ? (
                   <button
                     onClick={() => setShowReportForm(true)}
-                    className="w-full mt-3 border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 py-2 rounded-xl text-xs font-bold transition-all"
+                    className="w-full mt-3 border border-[var(--color-danger)]/30 text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 py-2 rounded-xl text-xs font-bold transition-all"
                   >
                     Report this Listing
                   </button>
                 ) : (
                   <form onSubmit={handleReportSubmit} className="space-y-3 mt-3 animate-in fade-in duration-150">
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Reason for Report</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Reason for Report</label>
                       <select
                         value={reportReason}
                         onChange={(e) => setReportReason(e.target.value)}
-                        className="w-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 focus:outline-none"
+                        className="w-full text-xs bg-[var(--color-paper)] border border-[var(--color-paper-soft)] rounded-lg p-2 focus:outline-none text-[var(--color-ink)]"
                       >
                         <option value="Duplicate Listing">Duplicate Listing (Same IMEI/Aesthetics)</option>
                         <option value="Inaccurate Specifications">Inaccurate Specs (RAM/Battery Health lied)</option>
@@ -1063,19 +1085,19 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     </div>
 
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Supporting Details</label>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Supporting Details</label>
                       <textarea
                         rows={2}
                         value={reportDetails}
                         onChange={(e) => setReportDetails(e.target.value)}
-                        className="w-full text-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 focus:outline-none"
+                        className="w-full text-xs bg-[var(--color-paper)] border border-[var(--color-paper-soft)] rounded-lg p-2 focus:outline-none text-[var(--color-ink)]"
                         placeholder="Please elaborate on why you are reporting this listing..."
                         required
                       ></textarea>
                     </div>
 
                     {reportSubmitted ? (
-                      <p className="text-xs text-green-600 font-bold bg-green-50 p-2 rounded-lg border border-green-200">
+                      <p className="text-xs text-[var(--color-verified)] font-bold bg-[var(--color-verified)]/10 p-2 rounded-lg border border-[var(--color-verified)]/30">
                         Thank you. Your community report has been securely registered.
                       </p>
                     ) : (
@@ -1083,13 +1105,13 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                         <button
                           type="button"
                           onClick={() => setShowReportForm(false)}
-                          className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-xs font-bold hover:bg-gray-200"
+                          className="flex-1 bg-[var(--color-paper-soft)] text-[var(--color-ink)] py-2 rounded-xl text-xs font-bold hover:brightness-95"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="flex-1 bg-red-600 text-white py-2 rounded-xl text-xs font-bold hover:bg-red-700 shadow-sm"
+                          className="flex-1 bg-[var(--color-danger)] text-white py-2 rounded-xl text-xs font-bold hover:brightness-110 shadow-sm"
                         >
                           Submit Report
                         </button>
@@ -1110,3 +1132,4 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
     </div>
   );
 }
+

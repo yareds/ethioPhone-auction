@@ -1,11 +1,65 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700;1,800;1,900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,700&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Fraunces", "Playfair Display", serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-ink: #12100e;
+  --color-ink-soft: #1c1815;
+  --color-paper: #fbf8f3;
+  --color-paper-soft: #f3ede2;
+  --color-gold: #b8873a;
+  --color-gold-soft: #e8c07f;
+  --color-clay: #8c4a38;
+  --color-verified: #1f6f63;
+  --color-verified-soft: #d9ebe6;
+  --color-danger: #b23a32;
+}
+
+:root {
+  --color-ink: #12100e;
+  --color-ink-soft: #1c1815;
+  --color-paper: #fbf8f3;
+  --color-paper-soft: #f3ede2;
+  --color-gold: #b8873a;
+  --color-gold-soft: #e8c07f;
+  --color-clay: #8c4a38;
+  --color-verified: #1f6f63;
+  --color-verified-soft: #d9ebe6;
+  --color-danger: #b23a32;
 }
 
 body {
   font-family: var(--font-sans);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif-logo {
+  font-family: 'Playfair Display', 'Fraunces', serif;
+}
+
+.font-sans-logo {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+
+.seal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  background-color: var(--color-verified-soft);
+  color: var(--color-verified);
+  border: 1px solid rgba(31, 111, 99, 0.25);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+

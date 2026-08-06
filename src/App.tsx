@@ -14,6 +14,7 @@ import ShopProfileView from "./components/ShopProfileView";
 import AdminPanel from "./components/AdminPanel";
 import SignupPage from "./components/SignupPage";
 import HeroSection from "./components/HeroSection";
+import { BrandLogo } from "./components/Logo";
 import { AuctionStatus, PhoneListing } from "./types";
 import { ShieldCheck, Gavel, RefreshCw, AlertTriangle, HelpCircle, ArrowRight } from "lucide-react";
 
@@ -113,7 +114,7 @@ function MainAppContent() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-gray-100 transition-colors duration-300">
       
       {/* Primary Navigation and Filter Bars */}
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -137,7 +138,7 @@ function MainAppContent() {
                 {/* Search meta summary & simulate trigger */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="font-sans font-black text-lg text-gray-900 dark:text-white flex items-center gap-1.5">
+                    <h2 className="font-display font-black text-lg text-[var(--color-ink)] dark:text-white flex items-center gap-1.5">
                       🔥 Live Smartphone Auctions
                     </h2>
                     <p className="text-[11px] text-gray-500 mt-0.5">
@@ -147,7 +148,7 @@ function MainAppContent() {
 
                   <button
                     onClick={simulateTimeTick}
-                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-yellow-400 hover:bg-yellow-500 text-slate-900 px-3.5 py-1.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] px-3.5 py-1.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-95"
                     title="Simulate 1 Hour Time Tick to update live countdowns and rival bids"
                     id="trigger-sim-tick"
                   >
@@ -157,7 +158,7 @@ function MainAppContent() {
 
                 {/* Grid layout */}
                 {sortedListings.length === 0 ? (
-                  <div className="text-center py-16 bg-white dark:bg-gray-900 rounded-3xl border border-gray-150 dark:border-gray-800">
+                  <div className="text-center py-16 bg-[var(--color-paper)] dark:bg-[var(--color-ink)] rounded-3xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
                     <p className="text-sm font-extrabold text-gray-400 uppercase tracking-widest">No active auctions found</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-sans">Try removing active battery, brand, or sub-city filters.</p>
                   </div>
@@ -178,28 +179,28 @@ function MainAppContent() {
               <div className="lg:col-span-3 space-y-6">
                 
                 {/* IMEI & Trust Assurance Card */}
-                <div className="bg-slate-900 text-white rounded-3xl p-5 border border-slate-800 shadow-lg relative overflow-hidden">
-                  <div className="absolute right-0 top-0 h-20 w-20 bg-yellow-400/5 rounded-full blur-2xl pointer-events-none"></div>
-                  <h3 className="font-sans font-extrabold text-xs uppercase text-yellow-400 tracking-wider flex items-center gap-1.5">
+                <div className="bg-[var(--color-ink)] text-white rounded-3xl p-5 border border-[var(--color-ink-soft)] shadow-lg relative overflow-hidden">
+                  <div className="absolute right-0 top-0 h-20 w-20 bg-[var(--color-gold)]/5 rounded-full blur-2xl pointer-events-none"></div>
+                  <h3 className="font-sans font-extrabold text-xs uppercase text-[var(--color-gold)] tracking-wider flex items-center gap-1.5">
                     <ShieldCheck className="h-4.5 w-4.5" /> Handshake Guarantee
                   </h3>
                   <p className="text-xs text-slate-300 leading-relaxed font-medium mt-3">
                     Every auction listed requires strict physical storefront checkups. Buyers inspect the phone condition inside verified shops before exchanging funds.
                   </p>
-                  <p className="text-[10px] text-slate-500 font-bold mt-2.5 uppercase tracking-wide">
+                  <p className="text-[10px] text-slate-400 font-bold mt-2.5 uppercase tracking-wide">
                     Zero credit cards required • Pay via Telebirr or CBE Birr
                   </p>
                 </div>
 
                 {/* Safe Trading Procedures */}
-                <div className="border border-gray-150 dark:border-gray-800 bg-white dark:bg-gray-900 rounded-3xl p-5 shadow-sm space-y-3.5">
+                <div className="border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] rounded-3xl p-5 shadow-sm space-y-3.5">
                   <h4 className="font-sans font-extrabold text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                     🛒 Pickup Procedures
                   </h4>
                   
                   <div className="space-y-3 text-xs">
                     <div className="flex gap-2">
-                      <div className="bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0 text-[10px]">
+                      <div className="bg-[var(--color-gold-soft)]/30 text-[var(--color-gold)] font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0 text-[10px]">
                         1
                       </div>
                       <p className="text-gray-600 dark:text-gray-400 leading-normal">
@@ -208,7 +209,7 @@ function MainAppContent() {
                     </div>
 
                     <div className="flex gap-2">
-                      <div className="bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0 text-[10px]">
+                      <div className="bg-[var(--color-gold-soft)]/30 text-[var(--color-gold)] font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0 text-[10px]">
                         2
                       </div>
                       <p className="text-gray-600 dark:text-gray-400 leading-normal">
@@ -217,7 +218,7 @@ function MainAppContent() {
                     </div>
 
                     <div className="flex gap-2">
-                      <div className="bg-yellow-100 dark:bg-yellow-950/40 text-yellow-800 dark:text-yellow-400 font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0 text-[10px]">
+                      <div className="bg-[var(--color-gold-soft)]/30 text-[var(--color-gold)] font-black h-5 w-5 rounded-md flex items-center justify-center shrink-0 text-[10px]">
                         3
                       </div>
                       <p className="text-gray-600 dark:text-gray-400 leading-normal">
@@ -228,8 +229,8 @@ function MainAppContent() {
                 </div>
 
                 {/* CBE Birr / Telebirr info card */}
-                <div className="bg-yellow-500/5 dark:bg-yellow-500/10 rounded-3xl p-4.5 border border-yellow-400/20 text-xs">
-                  <p className="font-extrabold text-yellow-800 dark:text-yellow-400 flex items-center gap-1">
+                <div className="bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] rounded-3xl p-4.5 border border-[var(--color-gold)]/20 text-xs">
+                  <p className="font-extrabold text-[var(--color-gold)] flex items-center gap-1">
                     <AlertTriangle className="h-4 w-4 shrink-0" /> Local Ethiopia Pricing
                   </p>
                   <p className="text-gray-600 dark:text-gray-400 leading-relaxed font-medium mt-1.5">
@@ -274,6 +275,16 @@ function MainAppContent() {
         )}
 
       </main>
+
+      {/* FOOTER */}
+      <footer className="mt-16 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/30 py-10 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <BrandLogo size="md" onClick={() => setActiveTab("home")} />
+          <p className="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-right font-medium">
+            Ethiopia's Premium Smartphone Auction Platform • Verified Merchant Handshake System
+          </p>
+        </div>
+      </footer>
 
       {/* DETAILS MODAL OVERLAY */}
       {selectedListing && (

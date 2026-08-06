@@ -204,7 +204,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       {
         id: "notif-welcome",
         userId: "user-admin",
-        title: "Welcome to EthioPhone Auction!",
+        title: "Welcome to ETPhone Auction!",
         message: "Your primary auction hub. Browse verified listings, check IMEI numbers, and place bids securely.",
         type: "general",
         isRead: false,
@@ -480,7 +480,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     triggerNotification(
       newUserId,
-      "🎉 Welcome to EthioPhone Auction!",
+      "🎉 Welcome to ETPhone Auction!",
       `Hello ${userData.name}, you have successfully signed up. ${
         userData.role === UserRole.SHOP_OWNER
           ? "You are signed up as a Shop Owner. You can list phones, view shop analytics, and access full administrative controls!"
@@ -961,7 +961,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       triggerNotification(
         listing.winnerId,
         "🤝 Pickup Completed!",
-        `Your pickup for ${listing.brand} ${listing.model} has been verified by the seller. The transaction is complete. Thank you for using EthioPhone!`,
+        `Your pickup for ${listing.brand} ${listing.model} has been verified by the seller. The transaction is complete. Thank you for using ETPhone!`,
         "pickup_verified",
         listingId
       );
