@@ -2,45 +2,120 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
     // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
 
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'yared.abegaz@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
     // Users Collection
     match /users/{userId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId &&
+        incoming().id == userId &&
+        incoming().email is string &&
+        incoming().name is string && incoming().name.size() <= 120 &&
+        (incoming().role != 'admin' || isAdmin());
+      allow update: if (isOwner(userId) || isAdmin()) &&
+        incoming().id == existing().id &&
+        incoming().email == existing().email &&
+        (isAdmin() || incoming().role == existing().role);
+      allow delete: if isAdmin();
     }
 
     // Shops Collection
     match /shops/{shopId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if isSignedIn() && (incoming().ownerId == request.auth.uid || isAdmin()) &&
+        incoming().name is string && incoming().name.size() <= 120 &&
+        incoming().phone is string && incoming().phone.size() <= 40;
+      allow update: if isSignedIn() && (existing().ownerId == request.auth.uid || isAdmin()) &&
+        incoming().ownerId == existing().ownerId;
+      allow delete: if isAdmin();
     }
 
     // Listings Collection
     match /listings/{listingId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if isSignedIn() && (incoming().sellerId == request.auth.uid || isAdmin()) &&
+        incoming().brand is string && incoming().brand.size() <= 80 &&
+        incoming().model is string && incoming().model.size() <= 100 &&
+        incoming().startingBid is number && incoming().startingBid >= 0;
+      allow update: if isSignedIn() &&
+        existing().status != 'completed' &&
+        incoming().sellerId == existing().sellerId &&
+        incoming().createdAt == existing().createdAt &&
+        (
+          existing().sellerId == request.auth.uid || 
+          isAdmin() ||
+          // Allow bid updates / buy now / view counts by authenticated users
+          (incoming().diff(existing()).affectedKeys().hasAny(['currentBid', 'winnerId', 'views', 'status', 'pickupCode']))
+        );
+      allow delete: if isSignedIn() && (existing().sellerId == request.auth.uid || isAdmin());
     }
 
     // Bids Collection
     match /bids/{bidId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        incoming().bidderId == request.auth.uid &&
+        incoming().amount is number && incoming().amount > 0 &&
+        exists(/databases/$(database)/documents/listings/$(incoming().listingId)) &&
+        get(/databases/$(database)/documents/listings/$(incoming().listingId)).data.status == 'live' &&
+        incoming().amount > get(/databases/$(database)/documents/listings/$(incoming().listingId)).data.currentBid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // Notifications Collection
     match /notifications/{notificationId} {
-      allow read, write: if true;
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
     // Direct Messages Collection
     match /messages/{messageId} {
-      allow read, write: if true;
+      allow read: if isSignedIn() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().senderId == request.auth.uid &&
+        incoming().text is string && incoming().text.size() <= 1000;
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (existing().senderId == request.auth.uid || isAdmin());
     }
 
     // Reports Collection
     match /reports/{reportId} {
-      allow read, write: if true;
+      allow read: if isAdmin() || (isSignedIn() && resource.data.reporterId == request.auth.uid);
+      allow create: if isSignedIn() && incoming().reporterId == request.auth.uid &&
+        incoming().details is string && incoming().details.size() <= 1000;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
   }
 }
-

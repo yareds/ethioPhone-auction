@@ -22,7 +22,8 @@ import {
   updateDoc, 
   deleteDoc, 
   addDoc, 
-  getDocs 
+  getDocs,
+  runTransaction
 } from "firebase/firestore";
 import { 
   signInWithPopup, 
@@ -91,8 +92,8 @@ interface AppContextType {
   updateBidAmount: (id: string, amount: number) => void;
 
   // Bidding Operations
-  placeBid: (listingId: string, amount: number) => { success: boolean; error?: string };
-  buyNow: (listingId: string) => { success: boolean; error?: string };
+  placeBid: (listingId: string, amount: number) => Promise<{ success: boolean; error?: string }>;
+  buyNow: (listingId: string) => Promise<{ success: boolean; error?: string }>;
 
   // Watchlist & Favorites
   toggleWatchlist: (listingId: string) => void;
@@ -659,135 +660,213 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  const placeBid = (listingId: string, amount: number) => {
+  const placeBid = async (listingId: string, amount: number) => {
     if (currentUser.id === "guest") {
       return { success: false, error: "Please sign in to place a bid on this device." };
     }
-    const listing = listings.find((l) => l.id === listingId);
-    if (!listing) return { success: false, error: "Listing not found" };
 
-    if (listing.status !== AuctionStatus.LIVE) {
-      return { success: false, error: "Auction is not currently live" };
-    }
-
-    if (amount <= listing.currentBid) {
-      return { success: false, error: `Bid must be higher than current bid (ETB ${listing.currentBid.toLocaleString()})` };
-    }
-
-    const minAcceptable = listing.currentBid + listing.minIncrement;
-    if (amount < minAcceptable) {
-      return { success: false, error: `Minimum bid increment is ETB ${listing.minIncrement.toLocaleString()}. Bid must be at least ETB ${minAcceptable.toLocaleString()}` };
-    }
-
-    if (listing.sellerId === currentUser.id) {
-      return { success: false, error: "You cannot bid on your own phone auction." };
-    }
-
+    const listingRef = doc(db, "listings", listingId);
     const newBidId = `bid-${Date.now()}`;
-    const newBid: Bid = {
-      id: newBidId,
-      listingId,
-      bidderId: currentUser.id,
-      bidderName: currentUser.name,
-      amount,
-      timestamp: new Date().toISOString()
-    };
+    const bidRef = doc(db, "bids", newBidId);
 
-    setBids((prev) => [...prev, newBid]);
-    setListings((prev) =>
-      prev.map((l) => (l.id === listingId ? { ...l, currentBid: amount } : l))
-    );
+    try {
+      let sellerId = "";
+      let brand = "";
+      let model = "";
 
-    setDoc(doc(db, "bids", newBidId), newBid).catch((e) =>
-      handleFirestoreError(e, OperationType.WRITE, `bids/${newBidId}`)
-    );
-    updateDoc(doc(db, "listings", listingId), { currentBid: amount }).catch((e) =>
-      handleFirestoreError(e, OperationType.UPDATE, `listings/${listingId}`)
-    );
+      await runTransaction(db, async (transaction) => {
+        const listingDoc = await transaction.get(listingRef);
+        if (!listingDoc.exists()) {
+          throw new Error("Listing not found");
+        }
 
-    if (!watchlist.includes(listingId)) {
-      setWatchlist((prev) => [...prev, listingId]);
+        const listingData = listingDoc.data() as PhoneListing;
+
+        if (listingData.status !== AuctionStatus.LIVE) {
+          throw new Error("Auction is not currently live");
+        }
+
+        if (listingData.sellerId === currentUser.id) {
+          throw new Error("You cannot bid on your own phone auction.");
+        }
+
+        if (amount <= listingData.currentBid) {
+          throw new Error(`Bid must be higher than current bid (ETB ${listingData.currentBid.toLocaleString()})`);
+        }
+
+        const minIncrement = listingData.minIncrement || 0;
+        const minAcceptable = listingData.currentBid + minIncrement;
+        if (amount < minAcceptable) {
+          throw new Error(`Minimum bid increment is ETB ${minIncrement.toLocaleString()}. Bid must be at least ETB ${minAcceptable.toLocaleString()}`);
+        }
+
+        sellerId = listingData.sellerId;
+        brand = listingData.brand;
+        model = listingData.model;
+
+        const newBid: Bid = {
+          id: newBidId,
+          listingId,
+          bidderId: currentUser.id,
+          bidderName: currentUser.name,
+          amount,
+          timestamp: new Date().toISOString()
+        };
+
+        transaction.set(bidRef, newBid);
+        transaction.update(listingRef, { currentBid: amount });
+      });
+
+      setBids((prev) => [
+        ...prev,
+        {
+          id: newBidId,
+          listingId,
+          bidderId: currentUser.id,
+          bidderName: currentUser.name,
+          amount,
+          timestamp: new Date().toISOString()
+        }
+      ]);
+
+      setListings((prev) =>
+        prev.map((l) => (l.id === listingId ? { ...l, currentBid: amount } : l))
+      );
+
+      if (!watchlist.includes(listingId)) {
+        setWatchlist((prev) => [...prev, listingId]);
+      }
+
+      if (sellerId) {
+        triggerNotification(
+          sellerId,
+          "💰 New Bid Placed",
+          `${currentUser.name} placed a bid of ETB ${amount.toLocaleString()} on your ${brand} ${model}!`,
+          "bid_placed",
+          listingId
+        );
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error in placeBid transaction:", error);
+      const errorMessage = error?.message || "Failed to place bid.";
+      return { success: false, error: errorMessage };
     }
-
-    triggerNotification(
-      listing.sellerId,
-      "💰 New Bid Placed",
-      `${currentUser.name} placed a bid of ETB ${amount.toLocaleString()} on your ${listing.brand} ${listing.model}!`,
-      "bid_placed",
-      listingId
-    );
-
-    return { success: true };
   };
 
-  const buyNow = (listingId: string) => {
+  const buyNow = async (listingId: string) => {
     if (currentUser.id === "guest") {
       return { success: false, error: "Please sign in to buy this phone." };
     }
-    const listing = listings.find((l) => l.id === listingId);
-    if (!listing) return { success: false, error: "Listing not found" };
 
-    if (!listing.buyNowPrice) return { success: false, error: "Buy now not available for this listing" };
-
-    if (listing.status !== AuctionStatus.LIVE) {
-      return { success: false, error: "Auction is not currently live" };
-    }
-
-    if (listing.sellerId === currentUser.id) {
-      return { success: false, error: "You cannot buy your own phone." };
-    }
-
+    const listingRef = doc(db, "listings", listingId);
+    const newBidId = `bid-${Date.now()}`;
+    const bidRef = doc(db, "bids", newBidId);
     const now = new Date();
-    const finalAmount = listing.buyNowPrice;
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    const newBidId = `bid-${Date.now()}`;
-    const newBid: Bid = {
-      id: newBidId,
-      listingId,
-      bidderId: currentUser.id,
-      bidderName: currentUser.name,
-      amount: finalAmount,
-      timestamp: now.toISOString()
-    };
+    let finalAmount = 0;
+    let sellerId = "";
+    let brand = "";
+    let model = "";
 
-    setBids((prev) => [...prev, newBid]);
-    setDoc(doc(db, "bids", newBidId), newBid).catch((e) =>
-      handleFirestoreError(e, OperationType.WRITE, `bids/${newBidId}`)
-    );
+    try {
+      await runTransaction(db, async (transaction) => {
+        const listingDoc = await transaction.get(listingRef);
+        if (!listingDoc.exists()) {
+          throw new Error("Listing not found");
+        }
 
-    const updatedListing = {
-      currentBid: finalAmount,
-      status: AuctionStatus.ENDED,
-      winnerId: currentUser.id,
-      pickupCode: confirmationCode
-    };
+        const listingData = listingDoc.data() as PhoneListing;
 
-    setListings((prev) =>
-      prev.map((l) => (l.id === listingId ? { ...l, ...updatedListing } : l))
-    );
+        if (!listingData.buyNowPrice) {
+          throw new Error("Buy now not available for this listing");
+        }
 
-    updateDoc(doc(db, "listings", listingId), updatedListing).catch((e) =>
-      handleFirestoreError(e, OperationType.UPDATE, `listings/${listingId}`)
-    );
+        if (listingData.status !== AuctionStatus.LIVE) {
+          throw new Error("Auction is not currently live");
+        }
 
-    triggerNotification(
-      currentUser.id,
-      "🏆 Bought It Now!",
-      `You bought ${listing.brand} ${listing.model} instantly for ETB ${finalAmount.toLocaleString()}! Code: ${confirmationCode}`,
-      "auction_won",
-      listingId
-    );
+        if (listingData.sellerId === currentUser.id) {
+          throw new Error("You cannot buy your own phone.");
+        }
 
-    triggerNotification(
-      listing.sellerId,
-      "📦 Immediate Sale!",
-      `${currentUser.name} bought your ${listing.brand} ${listing.model} using Buy Now for ETB ${finalAmount.toLocaleString()}!`,
-      "auction_ended",
-      listingId
-    );
+        finalAmount = listingData.buyNowPrice;
+        sellerId = listingData.sellerId;
+        brand = listingData.brand;
+        model = listingData.model;
 
-    return { success: true };
+        const newBid: Bid = {
+          id: newBidId,
+          listingId,
+          bidderId: currentUser.id,
+          bidderName: currentUser.name,
+          amount: finalAmount,
+          timestamp: now.toISOString()
+        };
+
+        const updatedListing = {
+          currentBid: finalAmount,
+          status: AuctionStatus.ENDED,
+          winnerId: currentUser.id,
+          pickupCode: confirmationCode
+        };
+
+        transaction.set(bidRef, newBid);
+        transaction.update(listingRef, updatedListing);
+      });
+
+      setBids((prev) => [
+        ...prev,
+        {
+          id: newBidId,
+          listingId,
+          bidderId: currentUser.id,
+          bidderName: currentUser.name,
+          amount: finalAmount,
+          timestamp: now.toISOString()
+        }
+      ]);
+
+      setListings((prev) =>
+        prev.map((l) =>
+          l.id === listingId
+            ? {
+                ...l,
+                currentBid: finalAmount,
+                status: AuctionStatus.ENDED,
+                winnerId: currentUser.id,
+                pickupCode: confirmationCode
+              }
+            : l
+        )
+      );
+
+      triggerNotification(
+        currentUser.id,
+        "🏆 Bought It Now!",
+        `You bought ${brand} ${model} instantly for ETB ${finalAmount.toLocaleString()}! Code: ${confirmationCode}`,
+        "auction_won",
+        listingId
+      );
+
+      if (sellerId) {
+        triggerNotification(
+          sellerId,
+          "📦 Immediate Sale!",
+          `${currentUser.name} bought your ${brand} ${model} using Buy Now for ETB ${finalAmount.toLocaleString()}!`,
+          "auction_ended",
+          listingId
+        );
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error in buyNow transaction:", error);
+      const errorMessage = error?.message || "Failed to complete Buy Now purchase.";
+      return { success: false, error: errorMessage };
+    }
   };
 
   const toggleWatchlist = (listingId: string) => {

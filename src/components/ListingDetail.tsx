@@ -164,7 +164,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
     }
   }, [showChat, messages]);
 
-  const handlePlaceBid = (e: React.FormEvent) => {
+  const handlePlaceBid = async (e: React.FormEvent) => {
     e.preventDefault();
     setBidError("");
     setBidSuccess(false);
@@ -175,7 +175,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
       return;
     }
 
-    const res = placeBid(listing.id, amount);
+    const res = await placeBid(listing.id, amount);
     if (!res.success) {
       setBidError(res.error || "Failed to place bid");
     } else {
@@ -184,9 +184,9 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
     }
   };
 
-  const handleBuyNow = () => {
+  const handleBuyNow = async () => {
     if (window.confirm(`Are you sure you want to buy this phone instantly for ETB ${listing.buyNowPrice?.toLocaleString()}? This will end the auction immediately, and you can pick up the phone at the shop.`)) {
-      const res = buyNow(listing.id);
+      const res = await buyNow(listing.id);
       if (!res.success) {
         setBidError(res.error || "Failed Buy Now transaction");
       } else {
