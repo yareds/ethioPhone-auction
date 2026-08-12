@@ -7,12 +7,14 @@ import { useState, useEffect } from "react";
 import { useApp } from "../context/AppContext";
 import { PhoneListing, AuctionStatus, PhoneCondition } from "../types";
 import { Heart, Clock, Gavel, MapPin, Eye, CheckCircle, ShieldAlert } from "lucide-react";
+import SignupModal from "./SignupModal";
 
 export default function AuctionCard({ listing, onViewDetails }: { listing: PhoneListing; onViewDetails: (listing: PhoneListing) => void; key?: string }) {
-  const { bids, watchlist, toggleWatchlist, shops } = useApp();
+  const { currentUser, bids, watchlist, toggleWatchlist, shops } = useApp();
   const [timeLeft, setTimeLeft] = useState("");
   const [isLive, setIsLive] = useState(false);
   const [isUpcoming, setIsUpcoming] = useState(false);
+  const [showSignupModal, setShowSignupModal] = useState(false);
 
   const listingBids = bids.filter((b) => b.listingId === listing.id);
   const bidCount = listingBids.length;
@@ -109,7 +111,14 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
       
       {/* Watchlist toggle button */}
       <button
-        onClick={(e) => { e.stopPropagation(); toggleWatchlist(listing.id); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (currentUser.id === "guest") {
+            setShowSignupModal(true);
+            return;
+          }
+          toggleWatchlist(listing.id);
+        }}
         className={`absolute top-4 right-4 z-10 p-2 rounded-full border shadow-sm transition-all ${
           isWatched
             ? "bg-[var(--color-danger)] border-[var(--color-danger)] text-white hover:scale-110"
@@ -256,6 +265,15 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
         </div>
 
       </div>
+
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => setShowSignupModal(false)}
+        context={`Sign up to save the ${listing.brand} ${listing.model} to your watchlist`}
+        onSignupSuccess={() => {
+          toggleWatchlist(listing.id);
+        }}
+      />
 
     </div>
   );

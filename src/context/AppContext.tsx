@@ -23,7 +23,9 @@ import {
   deleteDoc, 
   addDoc, 
   getDocs,
-  runTransaction
+  runTransaction,
+  query,
+  where
 } from "firebase/firestore";
 import { 
   signInWithPopup, 
@@ -197,15 +199,60 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     testFirestoreConnection();
 
+    // Subscribe to public collections: shops, listings, bids
+    const unsubShops = onSnapshot(collection(db, "shops"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedShops: ShopProfile[] = [];
+        snapshot.forEach((d) => fetchedShops.push(d.data() as ShopProfile));
+        setShops(fetchedShops);
+      } else {
+        setShops(initialShops);
+      }
+    }, (err) => {
+      console.warn("Public shops read failed, using local initialShops", err);
+    });
+
+    const unsubListings = onSnapshot(collection(db, "listings"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedListings: PhoneListing[] = [];
+        snapshot.forEach((d) => fetchedListings.push(d.data() as PhoneListing));
+        setListings(fetchedListings);
+      } else {
+        setListings(initialListings);
+      }
+    }, (err) => {
+      console.warn("Public listings read failed, using local initialListings", err);
+    });
+
+    const unsubBids = onSnapshot(collection(db, "bids"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedBids: Bid[] = [];
+        snapshot.forEach((d) => fetchedBids.push(d.data() as Bid));
+        setBids(fetchedBids);
+      } else {
+        setBids(initialBids);
+      }
+    }, (err) => {
+      console.warn("Public bids read failed, using local initialBids", err);
+    });
+
+    let userSubscriptionsCleanup: (() => void) | null = null;
+
     // Listen to Firebase Auth state changes
     const unsubAuth = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
+      if (userSubscriptionsCleanup) {
+        userSubscriptionsCleanup();
+        userSubscriptionsCleanup = null;
+      }
+
       if (fbUser) {
+        const isAdminUser = fbUser.email === "yared.abegaz@gmail.com";
         const userProfile: UserProfile = {
           id: fbUser.uid,
           name: fbUser.displayName || fbUser.email?.split("@")[0] || "Firebase User",
           email: fbUser.email || "",
           phone: fbUser.phoneNumber || "+251911000000",
-          role: fbUser.email === "yared.abegaz@gmail.com" ? UserRole.ADMIN : UserRole.BUYER,
+          role: isAdminUser ? UserRole.ADMIN : UserRole.BUYER,
           location: {
             region: "Addis Ababa",
             city: "Addis Ababa",
@@ -227,98 +274,83 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } catch (err) {
           console.error("Error saving user to Firestore:", err);
         }
+
+        // Subscribe to users collection (allowed for signed-in users)
+        const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+          if (!snapshot.empty) {
+            const fetchedUsers: UserProfile[] = [];
+            snapshot.forEach((d) => fetchedUsers.push(d.data() as UserProfile));
+            setUsers(fetchedUsers);
+          }
+        }, () => {});
+
+        // Subscribe to notifications for current user
+        const notifQuery = query(collection(db, "notifications"), where("userId", "==", fbUser.uid));
+        const unsubNotifs = onSnapshot(notifQuery, (snapshot) => {
+          if (!snapshot.empty) {
+            const fetchedNotifs: Notification[] = [];
+            snapshot.forEach((d) => fetchedNotifs.push(d.data() as Notification));
+            setNotifications(fetchedNotifs);
+          }
+        }, () => {});
+
+        // Subscribe to user messages
+        const msgQuerySent = query(collection(db, "messages"), where("senderId", "==", fbUser.uid));
+        const unsubMsgSent = onSnapshot(msgQuerySent, (snapshot) => {
+          if (!snapshot.empty) {
+            const fetchedMsgs: ChatMessage[] = [];
+            snapshot.forEach((d) => fetchedMsgs.push(d.data() as ChatMessage));
+            setMessages((prev) => {
+              const otherMsgs = prev.filter((m) => m.senderId !== fbUser.uid);
+              return [...otherMsgs, ...fetchedMsgs];
+            });
+          }
+        }, () => {});
+
+        const msgQueryRecv = query(collection(db, "messages"), where("receiverId", "==", fbUser.uid));
+        const unsubMsgRecv = onSnapshot(msgQueryRecv, (snapshot) => {
+          if (!snapshot.empty) {
+            const fetchedMsgs: ChatMessage[] = [];
+            snapshot.forEach((d) => fetchedMsgs.push(d.data() as ChatMessage));
+            setMessages((prev) => {
+              const otherMsgs = prev.filter((m) => m.receiverId !== fbUser.uid);
+              return [...otherMsgs, ...fetchedMsgs];
+            });
+          }
+        }, () => {});
+
+        // Subscribe to reports (admin sees all, regular user sees own)
+        const reportsQuery = isAdminUser
+          ? collection(db, "reports")
+          : query(collection(db, "reports"), where("reporterId", "==", fbUser.uid));
+        const unsubReports = onSnapshot(reportsQuery, (snapshot) => {
+          if (!snapshot.empty) {
+            const fetchedReps: Report[] = [];
+            snapshot.forEach((d) => fetchedReps.push(d.data() as Report));
+            setReports(fetchedReps);
+          }
+        }, () => {});
+
+        userSubscriptionsCleanup = () => {
+          unsubUsers();
+          unsubNotifs();
+          unsubMsgSent();
+          unsubMsgRecv();
+          unsubReports();
+        };
+      } else {
+        setUsers(initialUsers);
+        setMessages(initialMessages);
+        setReports(initialReports);
       }
     });
 
-    // Subscribe to Firestore 'users'
-    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedUsers: UserProfile[] = [];
-        snapshot.forEach((d) => fetchedUsers.push(d.data() as UserProfile));
-        setUsers(fetchedUsers);
-      } else {
-        // Seed Firestore if empty
-        initialUsers.forEach((u) => {
-          setDoc(doc(db, "users", u.id), u).catch((e) => handleFirestoreError(e, OperationType.WRITE, "users"));
-        });
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "users"));
-
-    // Subscribe to Firestore 'shops'
-    const unsubShops = onSnapshot(collection(db, "shops"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedShops: ShopProfile[] = [];
-        snapshot.forEach((d) => fetchedShops.push(d.data() as ShopProfile));
-        setShops(fetchedShops);
-      } else {
-        initialShops.forEach((s) => {
-          setDoc(doc(db, "shops", s.id), s).catch((e) => handleFirestoreError(e, OperationType.WRITE, "shops"));
-        });
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "shops"));
-
-    // Subscribe to Firestore 'listings'
-    const unsubListings = onSnapshot(collection(db, "listings"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedListings: PhoneListing[] = [];
-        snapshot.forEach((d) => fetchedListings.push(d.data() as PhoneListing));
-        setListings(fetchedListings);
-      } else {
-        initialListings.forEach((l) => {
-          setDoc(doc(db, "listings", l.id), l).catch((e) => handleFirestoreError(e, OperationType.WRITE, "listings"));
-        });
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "listings"));
-
-    // Subscribe to Firestore 'bids'
-    const unsubBids = onSnapshot(collection(db, "bids"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedBids: Bid[] = [];
-        snapshot.forEach((d) => fetchedBids.push(d.data() as Bid));
-        setBids(fetchedBids);
-      } else {
-        initialBids.forEach((b) => {
-          setDoc(doc(db, "bids", b.id), b).catch((e) => handleFirestoreError(e, OperationType.WRITE, "bids"));
-        });
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "bids"));
-
-    // Subscribe to Firestore 'notifications'
-    const unsubNotifs = onSnapshot(collection(db, "notifications"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedNotifs: Notification[] = [];
-        snapshot.forEach((d) => fetchedNotifs.push(d.data() as Notification));
-        setNotifications(fetchedNotifs);
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "notifications"));
-
-    // Subscribe to Firestore 'messages'
-    const unsubMessages = onSnapshot(collection(db, "messages"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedMsgs: ChatMessage[] = [];
-        snapshot.forEach((d) => fetchedMsgs.push(d.data() as ChatMessage));
-        setMessages(fetchedMsgs);
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "messages"));
-
-    // Subscribe to Firestore 'reports'
-    const unsubReports = onSnapshot(collection(db, "reports"), (snapshot) => {
-      if (!snapshot.empty) {
-        const fetchedReps: Report[] = [];
-        snapshot.forEach((d) => fetchedReps.push(d.data() as Report));
-        setReports(fetchedReps);
-      }
-    }, (err) => handleFirestoreError(err, OperationType.GET, "reports"));
-
     return () => {
       unsubAuth();
-      unsubUsers();
       unsubShops();
       unsubListings();
       unsubBids();
-      unsubNotifs();
-      unsubMessages();
-      unsubReports();
+      if (userSubscriptionsCleanup) userSubscriptionsCleanup();
     };
   }, []);
 
@@ -383,9 +415,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
         if (newStatus !== listing.status) {
           const updatedListing = { ...listing, status: newStatus };
-          setDoc(doc(db, "listings", listing.id), updatedListing, { merge: true }).catch((e) =>
-            handleFirestoreError(e, OperationType.UPDATE, `listings/${listing.id}`)
-          );
+          if (auth.currentUser && (auth.currentUser.uid === listing.sellerId || currentUser.role === UserRole.ADMIN)) {
+            setDoc(doc(db, "listings", listing.id), updatedListing, { merge: true }).catch((e) =>
+              handleFirestoreError(e, OperationType.UPDATE, `listings/${listing.id}`)
+            );
+          }
           return updatedListing;
         }
         return listing;
@@ -655,9 +689,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setListings((prev) =>
       prev.map((l) => (l.id === id ? { ...l, views } : l))
     );
-    updateDoc(doc(db, "listings", id), { views }).catch((e) =>
-      handleFirestoreError(e, OperationType.UPDATE, `listings/${id}`)
-    );
+    if (auth.currentUser) {
+      updateDoc(doc(db, "listings", id), { views }).catch((e) =>
+        handleFirestoreError(e, OperationType.UPDATE, `listings/${id}`)
+      );
+    }
   };
 
   const placeBid = async (listingId: string, amount: number) => {
@@ -896,9 +932,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString()
     };
     setNotifications((prev) => [newNotif, ...prev]);
-    setDoc(doc(db, "notifications", notifId), newNotif).catch((e) =>
-      handleFirestoreError(e, OperationType.WRITE, `notifications/${notifId}`)
-    );
+    if (auth.currentUser) {
+      setDoc(doc(db, "notifications", notifId), newNotif).catch((e) =>
+        handleFirestoreError(e, OperationType.WRITE, `notifications/${notifId}`)
+      );
+    }
   };
 
   const sendMessage = (receiverId: string, listingId: string, text: string) => {

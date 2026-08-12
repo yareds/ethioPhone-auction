@@ -157,16 +157,6 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               )}
             </nav>
 
-            <button
-              onClick={() => setActiveTab("signup")}
-              className={`bg-[var(--color-gold)] hover:bg-[var(--color-gold-soft)] text-[var(--color-paper)] font-semibold text-xs px-3 py-2 rounded-xl shadow-md gap-1.5 flex items-center transition-all hover:scale-[1.02] active:scale-95 ${
-                activeTab === "signup" ? "ring-2 ring-[var(--color-gold)] ring-offset-2" : ""
-              }`}
-              id="header-signup-btn"
-            >
-              <UserPlus className="h-3.5 w-3.5" /> Sign Up to Bid
-            </button>
-
             {/* Dark Mode Toggle */}
             <button
               onClick={toggleTheme}
@@ -291,15 +281,6 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                         </div>
                       </div>
 
-                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-gold)]/5">
-                        <button
-                          onClick={() => { setActiveTab("signup"); setShowProfileDropdown(false); }}
-                          className="w-full bg-[var(--color-ink)] hover:bg-[var(--color-ink-soft)] text-white dark:bg-[var(--color-gold)] dark:hover:bg-[var(--color-gold-soft)] dark:text-[var(--color-ink)] font-semibold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
-                        >
-                          <UserPlus className="h-3.5 w-3.5" /> Sign Up New Account
-                        </button>
-                      </div>
-
                       <div className="p-2 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/20 text-center">
                         <p className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 font-medium">
                           YONIPhone Auction v1.0
@@ -368,15 +349,6 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                             </button>
                           ))}
                         </div>
-                      </div>
-
-                      <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-gold)]/5">
-                        <button
-                          onClick={() => { setActiveTab("signup"); setShowProfileDropdown(false); }}
-                          className="w-full bg-[var(--color-ink)] hover:bg-[var(--color-ink-soft)] text-white dark:bg-[var(--color-gold)] dark:hover:bg-[var(--color-gold-soft)] dark:text-[var(--color-ink)] font-semibold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
-                        >
-                          <UserPlus className="h-3.5 w-3.5" /> Sign Up New Account
-                        </button>
                       </div>
 
                       <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-danger)]/5">

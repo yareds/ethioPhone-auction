@@ -1,12 +1,12 @@
 {
-  "projectId": "studio-424851478-89318",
-  "appId": "1:682048999019:web:ade261a1ed5badb687eb2e",
-  "apiKey": "AIzaSyD64yuykgYuuDKxFMzMgdS05dIVt2wQfjc",
-  "authDomain": "studio-424851478-89318.firebaseapp.com",
-  "firestoreDatabaseId": "ai-studio-ethiophoneauctio-77a7e7ed-99a7-4291-bbd5-e30e35abb728",
-  "storageBucket": "studio-424851478-89318.firebasestorage.app",
-  "messagingSenderId": "682048999019",
+  "projectId": "etphone-auction",
+  "appId": "1:169406741826:web:8562a22e4573dbcc645cdb",
+  "apiKey": "AIzaSyDC8QMwWFv3h-hqzYEuyQIveBze2wgsc7s",
+  "authDomain": "etphone-auction.firebaseapp.com",
+  "firestoreDatabaseId": "etphone-auction",
+  "storageBucket": "etphone-auction.firebasestorage.app",
+  "messagingSenderId": "169406741826",
   "measurementId": "",
-  "oAuthClientId": "682048999019-f51079lq7qr692r8mb4e27avqqec3sro.apps.googleusercontent.com",
+  "oAuthClientId": "169406741826-mo7td3nq1qcgcpcqo8sjd2mefr3c64ei.apps.googleusercontent.com",
   "recaptchaSiteKey": ""
 }

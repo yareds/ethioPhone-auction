@@ -12,7 +12,6 @@ import BuyerDashboard from "./components/BuyerDashboard";
 import SellerDashboard from "./components/SellerDashboard";
 import ShopProfileView from "./components/ShopProfileView";
 import AdminPanel from "./components/AdminPanel";
-import SignupPage from "./components/SignupPage";
 import HeroSection from "./components/HeroSection";
 import { BrandLogo } from "./components/Logo";
 import { AuctionStatus, PhoneListing } from "./types";
@@ -267,11 +266,6 @@ function MainAppContent() {
             onClose={() => { setSelectedShopId(null); setActiveTab("home"); }}
             onViewListing={(listing) => setSelectedListing(listing)}
           />
-        )}
-
-        {/* VIEW 6: DEDICATED FULL SIGN-UP PAGE */}
-        {activeTab === "signup" && (
-          <SignupPage onSignupSuccess={() => setActiveTab("home")} />
         )}
 
       </main>

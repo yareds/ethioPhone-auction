@@ -6,6 +6,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { PhoneListing, AuctionStatus, PhoneCondition, UserRole } from "../types";
+import SignupModal from "./SignupModal";
 import {
   X,
   Clock,
@@ -101,6 +102,20 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
   const [reportDetails, setReportDetails] = useState("");
   const [reportSubmitted, setReportSubmitted] = useState(false);
 
+  // Guest Auth Intercept Modal State
+  const [showSignupModal, setShowSignupModal] = useState(false);
+  const [signupContext, setSignupContext] = useState("");
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+
+  const handleSignupSuccess = () => {
+    const actionToRun = pendingAction;
+    setPendingAction(null);
+    setShowSignupModal(false);
+    if (actionToRun) {
+      actionToRun();
+    }
+  };
+
   const associatedShop = listing.shopId ? shops.find((s) => s.id === listing.shopId) : null;
   const sellerUser = users.find((u) => u.id === listing.sellerId);
   const isWatched = watchlist.includes(listing.id);
@@ -175,43 +190,92 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
       return;
     }
 
-    const res = await placeBid(listing.id, amount);
-    if (!res.success) {
-      setBidError(res.error || "Failed to place bid");
-    } else {
-      setBidSuccess(true);
-      setTimeout(() => setBidSuccess(false), 3000);
+    const executePlaceBid = async () => {
+      const res = await placeBid(listing.id, amount);
+      if (!res.success) {
+        setBidError(res.error || "Failed to place bid");
+      } else {
+        setBidSuccess(true);
+        setTimeout(() => setBidSuccess(false), 3000);
+      }
+    };
+
+    if (currentUser.id === "guest") {
+      setSignupContext(`Sign up to bid ETB ${amount.toLocaleString()} on the ${listing.brand} ${listing.model}`);
+      setPendingAction(() => executePlaceBid);
+      setShowSignupModal(true);
+      return;
     }
+
+    await executePlaceBid();
   };
 
   const handleBuyNow = async () => {
-    if (window.confirm(`Are you sure you want to buy this phone instantly for ETB ${listing.buyNowPrice?.toLocaleString()}? This will end the auction immediately, and you can pick up the phone at the shop.`)) {
-      const res = await buyNow(listing.id);
-      if (!res.success) {
-        setBidError(res.error || "Failed Buy Now transaction");
-      } else {
-        setBidSuccess(true);
+    const executeBuyNow = async () => {
+      if (window.confirm(`Are you sure you want to buy this phone instantly for ETB ${listing.buyNowPrice?.toLocaleString()}? This will end the auction immediately, and you can pick up the phone at the shop.`)) {
+        const res = await buyNow(listing.id);
+        if (!res.success) {
+          setBidError(res.error || "Failed Buy Now transaction");
+        } else {
+          setBidSuccess(true);
+        }
       }
+    };
+
+    if (currentUser.id === "guest") {
+      setSignupContext(`Sign up to buy the ${listing.brand} ${listing.model} instantly for ETB ${listing.buyNowPrice?.toLocaleString()}`);
+      setPendingAction(() => executeBuyNow);
+      setShowSignupModal(true);
+      return;
     }
+
+    await executeBuyNow();
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatText.trim()) return;
-    sendMessage(listing.sellerId, listing.id, chatText.trim());
-    setChatText("");
+    const textToSend = chatText.trim();
+
+    const executeSend = () => {
+      sendMessage(listing.sellerId, listing.id, textToSend);
+      setChatText("");
+    };
+
+    if (currentUser.id === "guest") {
+      setSignupContext(`Sign up to message shop seller for ${listing.brand} ${listing.model}`);
+      setPendingAction(() => executeSend);
+      setShowSignupModal(true);
+      return;
+    }
+
+    executeSend();
   };
 
   const handleReportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!reportDetails.trim()) return;
-    submitReport(listing.id, reportReason, reportDetails.trim());
-    setReportSubmitted(true);
-    setTimeout(() => {
-      setShowReportForm(false);
-      setReportSubmitted(false);
-      setReportDetails("");
-    }, 3000);
+    const details = reportDetails.trim();
+    const reason = reportReason;
+
+    const executeReport = () => {
+      submitReport(listing.id, reason, details);
+      setReportSubmitted(true);
+      setTimeout(() => {
+        setShowReportForm(false);
+        setReportSubmitted(false);
+        setReportDetails("");
+      }, 3000);
+    };
+
+    if (currentUser.id === "guest") {
+      setSignupContext(`Sign up to submit a community report for ${listing.brand} ${listing.model}`);
+      setPendingAction(() => executeReport);
+      setShowSignupModal(true);
+      return;
+    }
+
+    executeReport();
   };
 
   const chatMessages = messages
@@ -298,7 +362,15 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => toggleWatchlist(listing.id)}
+              onClick={() => {
+                if (currentUser.id === "guest") {
+                  setSignupContext(`Sign up to save the ${listing.brand} ${listing.model} to your watchlist`);
+                  setPendingAction(() => () => toggleWatchlist(listing.id));
+                  setShowSignupModal(true);
+                  return;
+                }
+                toggleWatchlist(listing.id);
+              }}
               className={`p-2 rounded-xl border transition-all ${
                 isWatched
                   ? "bg-[var(--color-danger)] border-[var(--color-danger)] text-white"
@@ -1129,6 +1201,16 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
         </div>
 
       </div>
+
+      <SignupModal
+        isOpen={showSignupModal}
+        onClose={() => {
+          setShowSignupModal(false);
+          setPendingAction(null);
+        }}
+        context={signupContext}
+        onSignupSuccess={handleSignupSuccess}
+      />
     </div>
   );
 }

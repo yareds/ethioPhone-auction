@@ -72,8 +72,8 @@ service cloud.firestore {
         (
           existing().sellerId == request.auth.uid || 
           isAdmin() ||
-          // Allow bid updates / buy now / view counts by authenticated users
-          (incoming().diff(existing()).affectedKeys().hasAny(['currentBid', 'winnerId', 'views', 'status', 'pickupCode']))
+          // Allow bid updates / buy now / view counts / reports count by authenticated users
+          (incoming().diff(existing()).affectedKeys().hasAny(['currentBid', 'winnerId', 'views', 'status', 'pickupCode', 'reportsCount']))
         );
       allow delete: if isSignedIn() && (existing().sellerId == request.auth.uid || isAdmin());
     }
