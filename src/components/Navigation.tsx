@@ -302,7 +302,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
 
                       <div className="p-2 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/20 text-center">
                         <p className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 font-medium">
-                          ETPhone Auction v1.0
+                          YONIPhone Auction v1.0
                         </p>
                       </div>
                     </div>
@@ -390,7 +390,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
 
                       <div className="p-2 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/20 text-center">
                         <p className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 font-medium">
-                          ETPhone Auction v1.0
+                          YONIPhone Auction v1.0
                         </p>
                       </div>
                     </div>

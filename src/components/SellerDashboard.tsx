@@ -439,7 +439,7 @@ export default function SellerDashboard({ onViewListing }: { onViewListing: (lis
                 </div>
                 <h3 className="font-display font-semibold text-lg text-[var(--color-ink)]">Admin Privileges Required</h3>
                 <p className="text-xs text-[var(--color-ink-soft)]/70 leading-relaxed">
-                  Only the <strong>EthioPhone Admin</strong> has authorized privileges to upload listings, manage phone images, or edit bidding details.
+                  Only the <strong>YONIPhone Admin</strong> has authorized privileges to upload listings, manage phone images, or edit bidding details.
                 </p>
               </div>
             ) : (
@@ -828,7 +828,7 @@ export default function SellerDashboard({ onViewListing }: { onViewListing: (lis
                   <div className="text-xs text-[var(--color-ink-soft)] space-y-1.5 bg-[var(--color-paper-soft)]/50 p-4 rounded-xl border border-[var(--color-paper-soft)]">
                     <p><strong>Bole Office:</strong> {userShop.location.address}</p>
                     <p><strong>Store Contact:</strong> {userShop.phone}</p>
-                    <p className="pt-2 text-[var(--color-ink-soft)]/60">Note: To update logo banners, storefront designs, or verified license credentials, contact EthioPhone System Administrator.</p>
+                    <p className="pt-2 text-[var(--color-ink-soft)]/60">Note: To update logo banners, storefront designs, or verified license credentials, contact YONIPhone System Administrator.</p>
                   </div>
                 </div>
               ) : (

@@ -326,7 +326,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
             <form onSubmit={handleSaveChanges} className="space-y-6">
               <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 p-4 rounded-2xl flex items-center gap-2 text-[var(--color-danger)] text-xs font-bold mb-4">
                 <Shield className="h-4.5 w-4.5" />
-                EthioPhone Admin - Editing Mode
+                YONIPhone Admin - Editing Mode
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -624,7 +624,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                 <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 p-4 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold text-[var(--color-danger)] uppercase tracking-widest flex items-center gap-1.5">
-                      <Shield className="h-4.5 w-4.5" /> EthioPhone Admin Moderation Control
+                      <Shield className="h-4.5 w-4.5" /> YONIPhone Admin Moderation Control
                     </p>
                     <p className="text-[11px] text-[var(--color-ink)]/70 mt-1">You have authorized permissions to edit phone specifications, manage images, delete listing, or modify bidding details/bids.</p>
                   </div>
@@ -966,7 +966,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
 
                 <div className="mt-4 pt-4 border-t border-[var(--color-paper-soft)] space-y-2.5">
                   <p className="text-xs text-[var(--color-ink)]/70 leading-relaxed bg-[var(--color-paper-soft)] p-3 rounded-xl">
-                    {associatedShop?.description || "Individual seller on EthioPhone Auction. Pay with Telebirr or CBE Birr in-person after inspecting the device."}
+                    {associatedShop?.description || "Individual seller on YONIPhone Auction. Pay with Telebirr or CBE Birr in-person after inspecting the device."}
                   </p>
 
                   <div className="flex gap-2">

@@ -170,8 +170,8 @@ interface BrandLogoProps {
 }
 
 /**
- * Complete ETPhone Brand Logo Component.
- * Features an elegant typographic wordmark ("ETPhone Auction") with the sleek
+ * Complete YONIPhone Brand Logo Component.
+ * Features an elegant typographic wordmark ("YONIPhone Auction") with the sleek
  * smartphone silhouette seamlessly integrated into the letter "O" in "Phone".
  */
 export const BrandLogo: React.FC<BrandLogoProps> = ({
@@ -198,14 +198,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       onClick={onClick}
       id="brand-logo-container"
     >
-      {/* Wordmark: ETPhone */}
+      {/* Wordmark: YONIPhone */}
       <div className="flex items-center leading-none">
         <span
           className={`font-sans-logo font-black tracking-tight ${textSizeClasses[size]} text-[var(--color-ink)] dark:text-[var(--color-paper)] flex items-center transition-colors group-hover:text-[var(--color-gold)]`}
         >
-          {/* ET in luxurious Gold Serif Italic */}
+          {/* YONI in luxurious Gold Serif Italic */}
           <span className="font-serif-logo italic font-extrabold text-[var(--color-gold)] mr-[0.04em] tracking-normal">
-            ET
+            YONI
           </span>
           
           {/* Ph + Smartphone O + ne */}

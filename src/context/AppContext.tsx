@@ -6,6 +6,30 @@
 import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { UserProfile, ShopProfile, PhoneListing, Bid, ChatMessage, Report, Notification, UserRole, AuctionStatus, PhoneCondition } from "../types";
 import { initialUsers, initialShops, initialListings, initialBids, initialMessages, initialReports } from "../data/mockData";
+import { 
+  db, 
+  auth, 
+  googleProvider, 
+  handleFirestoreError, 
+  OperationType, 
+  testFirestoreConnection 
+} from "../lib/firebase";
+import { 
+  collection, 
+  doc, 
+  onSnapshot, 
+  setDoc, 
+  updateDoc, 
+  deleteDoc, 
+  addDoc, 
+  getDocs 
+} from "firebase/firestore";
+import { 
+  signInWithPopup, 
+  signOut as firebaseSignOut, 
+  onAuthStateChanged, 
+  User as FirebaseUser 
+} from "firebase/auth";
 
 export const guestUser: UserProfile = {
   id: "guest",
@@ -39,6 +63,7 @@ interface AppContextType {
   // Auth Operations
   switchUser: (userId: string) => void;
   signOut: () => void;
+  signInWithGoogle: () => Promise<void>;
   signupUser: (userData: {
     name: string;
     email: string;
@@ -131,92 +156,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return saved ? JSON.parse(saved) : false;
   });
 
-  // Database core state
-  const [users, setUsers] = useState<UserProfile[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_users");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as UserProfile[];
-        const excludeNames = ["Dawit Kebede", "Almaz Tesfaye", "Tariku Bekele"];
-        const excludeIds = ["user-shop-1", "user-shop-2", "user-seller-3"];
-        const clean = parsed.filter(u => 
-          !excludeNames.some(name => u.name.toLowerCase().includes(name.toLowerCase())) && 
-          !excludeIds.includes(u.id)
-        );
-        if (clean.length !== parsed.length) {
-          localStorage.setItem("ethio_phone_users", JSON.stringify(clean));
-        }
-        return clean.length > 0 ? clean : initialUsers;
-      } catch (e) {
-        return initialUsers;
-      }
+  // Database core state initialized with mockData defaults
+  const [users, setUsers] = useState<UserProfile[]>(initialUsers);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(initialUsers[0]);
+  const [shops, setShops] = useState<ShopProfile[]>(initialShops);
+  const [listings, setListings] = useState<PhoneListing[]>(initialListings);
+  const [bids, setBids] = useState<Bid[]>(initialBids);
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [reports, setReports] = useState<Report[]>(initialReports);
+  const [notifications, setNotifications] = useState<Notification[]>(() => [
+    {
+      id: "notif-welcome",
+      userId: "user-admin",
+      title: "Welcome to YONIPhone Auction!",
+      message: "Your primary auction hub. Connected to Firebase Firestore backend.",
+      type: "general",
+      isRead: false,
+      createdAt: new Date().toISOString()
     }
-    return initialUsers;
-  });
+  ]);
 
-  const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem("ethio_phone_current_user");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as UserProfile;
-        const excludeNames = ["Dawit Kebede", "Almaz Tesfaye", "Tariku Bekele"];
-        const excludeIds = ["user-shop-1", "user-shop-2", "user-seller-3"];
-        const isObsolete = excludeNames.some(name => parsed.name.toLowerCase().includes(name.toLowerCase())) || excludeIds.includes(parsed.id);
-        if (!isObsolete) {
-          return parsed;
-        }
-      } catch (e) {
-        // Ignore and fallback
-      }
-    }
-    // Default to the admin profile
-    return initialUsers[0];
-  });
-
-  const [shops, setShops] = useState<ShopProfile[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_shops");
-    return saved ? JSON.parse(saved) : initialShops;
-  });
-
-  const [listings, setListings] = useState<PhoneListing[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_listings");
-    return saved ? JSON.parse(saved) : initialListings;
-  });
-
-  const [bids, setBids] = useState<Bid[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_bids");
-    return saved ? JSON.parse(saved) : initialBids;
-  });
-
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_messages");
-    return saved ? JSON.parse(saved) : initialMessages;
-  });
-
-  const [reports, setReports] = useState<Report[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_reports");
-    return saved ? JSON.parse(saved) : initialReports;
-  });
-
-  const [notifications, setNotifications] = useState<Notification[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_notifications");
-    return saved ? JSON.parse(saved) : [
-      {
-        id: "notif-welcome",
-        userId: "user-admin",
-        title: "Welcome to ETPhone Auction!",
-        message: "Your primary auction hub. Browse verified listings, check IMEI numbers, and place bids securely.",
-        type: "general",
-        isRead: false,
-        createdAt: new Date().toISOString()
-      }
-    ];
-  });
-
-  const [watchlist, setWatchlist] = useState<string[]>(() => {
-    const saved = localStorage.getItem("ethio_phone_watchlist");
-    return saved ? JSON.parse(saved) : ["listing-iphone15", "listing-iphone13"];
-  });
+  const [watchlist, setWatchlist] = useState<string[]>(() => ["listing-iphone15", "listing-iphone13"]);
 
   // Search and Filter states
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -232,48 +192,141 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const brandFilter = selectedBrand || "All";
   const locationFilter = selectedRegion || "All";
 
-  // Sync to local storage
+  // 1. Firebase Initialization & Realtime Firestore Subscriptions
+  useEffect(() => {
+    testFirestoreConnection();
+
+    // Listen to Firebase Auth state changes
+    const unsubAuth = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
+      if (fbUser) {
+        const userProfile: UserProfile = {
+          id: fbUser.uid,
+          name: fbUser.displayName || fbUser.email?.split("@")[0] || "Firebase User",
+          email: fbUser.email || "",
+          phone: fbUser.phoneNumber || "+251911000000",
+          role: fbUser.email === "yared.abegaz@gmail.com" ? UserRole.ADMIN : UserRole.BUYER,
+          location: {
+            region: "Addis Ababa",
+            city: "Addis Ababa",
+            subCity: "Bole",
+            address: "Bole Road"
+          },
+          photoUrl: fbUser.photoURL || undefined,
+          rating: 5.0,
+          reviewCount: 0,
+          isVerifiedSeller: true,
+          joinedDate: new Date().toISOString()
+        };
+
+        setCurrentUser(userProfile);
+
+        // Upsert user to Firestore
+        try {
+          await setDoc(doc(db, "users", fbUser.uid), userProfile, { merge: true });
+        } catch (err) {
+          console.error("Error saving user to Firestore:", err);
+        }
+      }
+    });
+
+    // Subscribe to Firestore 'users'
+    const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedUsers: UserProfile[] = [];
+        snapshot.forEach((d) => fetchedUsers.push(d.data() as UserProfile));
+        setUsers(fetchedUsers);
+      } else {
+        // Seed Firestore if empty
+        initialUsers.forEach((u) => {
+          setDoc(doc(db, "users", u.id), u).catch((e) => handleFirestoreError(e, OperationType.WRITE, "users"));
+        });
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "users"));
+
+    // Subscribe to Firestore 'shops'
+    const unsubShops = onSnapshot(collection(db, "shops"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedShops: ShopProfile[] = [];
+        snapshot.forEach((d) => fetchedShops.push(d.data() as ShopProfile));
+        setShops(fetchedShops);
+      } else {
+        initialShops.forEach((s) => {
+          setDoc(doc(db, "shops", s.id), s).catch((e) => handleFirestoreError(e, OperationType.WRITE, "shops"));
+        });
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "shops"));
+
+    // Subscribe to Firestore 'listings'
+    const unsubListings = onSnapshot(collection(db, "listings"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedListings: PhoneListing[] = [];
+        snapshot.forEach((d) => fetchedListings.push(d.data() as PhoneListing));
+        setListings(fetchedListings);
+      } else {
+        initialListings.forEach((l) => {
+          setDoc(doc(db, "listings", l.id), l).catch((e) => handleFirestoreError(e, OperationType.WRITE, "listings"));
+        });
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "listings"));
+
+    // Subscribe to Firestore 'bids'
+    const unsubBids = onSnapshot(collection(db, "bids"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedBids: Bid[] = [];
+        snapshot.forEach((d) => fetchedBids.push(d.data() as Bid));
+        setBids(fetchedBids);
+      } else {
+        initialBids.forEach((b) => {
+          setDoc(doc(db, "bids", b.id), b).catch((e) => handleFirestoreError(e, OperationType.WRITE, "bids"));
+        });
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "bids"));
+
+    // Subscribe to Firestore 'notifications'
+    const unsubNotifs = onSnapshot(collection(db, "notifications"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedNotifs: Notification[] = [];
+        snapshot.forEach((d) => fetchedNotifs.push(d.data() as Notification));
+        setNotifications(fetchedNotifs);
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "notifications"));
+
+    // Subscribe to Firestore 'messages'
+    const unsubMessages = onSnapshot(collection(db, "messages"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedMsgs: ChatMessage[] = [];
+        snapshot.forEach((d) => fetchedMsgs.push(d.data() as ChatMessage));
+        setMessages(fetchedMsgs);
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "messages"));
+
+    // Subscribe to Firestore 'reports'
+    const unsubReports = onSnapshot(collection(db, "reports"), (snapshot) => {
+      if (!snapshot.empty) {
+        const fetchedReps: Report[] = [];
+        snapshot.forEach((d) => fetchedReps.push(d.data() as Report));
+        setReports(fetchedReps);
+      }
+    }, (err) => handleFirestoreError(err, OperationType.GET, "reports"));
+
+    return () => {
+      unsubAuth();
+      unsubUsers();
+      unsubShops();
+      unsubListings();
+      unsubBids();
+      unsubNotifs();
+      unsubMessages();
+      unsubReports();
+    };
+  }, []);
+
+  // Theme LocalStorage Sync
   useEffect(() => {
     localStorage.setItem("ethio_phone_dark_mode", JSON.stringify(isDarkMode));
   }, [isDarkMode]);
 
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_users", JSON.stringify(users));
-  }, [users]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_current_user", JSON.stringify(currentUser));
-  }, [currentUser]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_shops", JSON.stringify(shops));
-  }, [shops]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_listings", JSON.stringify(listings));
-  }, [listings]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_bids", JSON.stringify(bids));
-  }, [bids]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_messages", JSON.stringify(messages));
-  }, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_reports", JSON.stringify(reports));
-  }, [reports]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_notifications", JSON.stringify(notifications));
-  }, [notifications]);
-
-  useEffect(() => {
-    localStorage.setItem("ethio_phone_watchlist", JSON.stringify(watchlist));
-  }, [watchlist]);
-
-  // Realtime Simulation Loop: Countdowns, Expirations, and Rival Bids
+  // Realtime Simulation Loop: Countdowns, Expirations
   const simulateTimeTick = () => {
     const now = new Date();
 
@@ -283,52 +336,43 @@ export function AppProvider({ children }: { children: ReactNode }) {
         const startTime = new Date(listing.startTime);
         const endTime = new Date(listing.endTime);
 
-        // Manage status transitions based on timing
         let newStatus = listing.status;
 
         if (listing.status === AuctionStatus.UPCOMING && now >= startTime) {
           newStatus = AuctionStatus.LIVE;
           listingsChanged = true;
         } else if (listing.status === AuctionStatus.LIVE && now >= endTime) {
-          // Find highest bid to see if anyone won
           const listingBids = bids.filter((b) => b.listingId === listing.id);
           if (listingBids.length > 0) {
-            // Sort bids descending
             const sortedBids = [...listingBids].sort((a, b) => b.amount - a.amount);
             const topBid = sortedBids[0];
-
-            // Set winner
             newStatus = AuctionStatus.ENDED;
             listing.winnerId = topBid.bidderId;
 
-            // Setup pickup confirmation code (6-digits)
             const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
             listing.pickupCode = confirmationCode;
 
-            // Notify the winner
             triggerNotification(
               topBid.bidderId,
               "🏆 Auction Won!",
-              `You won the auction for ${listing.brand} ${listing.model} with a bid of ETB ${topBid.amount.toLocaleString()}. Collect at seller's shop: ${listing.sellerLocation.address}. Code: ${confirmationCode}`,
+              `You won the auction for ${listing.brand} ${listing.model} with a bid of ETB ${topBid.amount.toLocaleString()}. Code: ${confirmationCode}`,
               "auction_won",
               listing.id
             );
 
-            // Notify the seller
             triggerNotification(
               listing.sellerId,
               "🎉 Auction Completed!",
-              `Your auction for ${listing.brand} ${listing.model} has ended. The winner is ${topBid.bidderName} (ETB ${topBid.amount.toLocaleString()}). Verification pickup code is active.`,
+              `Your auction for ${listing.brand} ${listing.model} has ended. Winner is ${topBid.bidderName}.`,
               "auction_ended",
               listing.id
             );
           } else {
-            // Ended with no bids
             newStatus = AuctionStatus.ENDED;
             triggerNotification(
               listing.sellerId,
               "⏳ Auction Ended (No Bids)",
-              `Your auction for ${listing.brand} ${listing.model} ended with no bids. You can relist this phone.`,
+              `Your auction for ${listing.brand} ${listing.model} ended with no bids.`,
               "auction_ended",
               listing.id
             );
@@ -337,68 +381,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
 
         if (newStatus !== listing.status) {
-          return { ...listing, status: newStatus, winnerId: listing.winnerId, pickupCode: listing.pickupCode };
+          const updatedListing = { ...listing, status: newStatus };
+          setDoc(doc(db, "listings", listing.id), updatedListing, { merge: true }).catch((e) =>
+            handleFirestoreError(e, OperationType.UPDATE, `listings/${listing.id}`)
+          );
+          return updatedListing;
         }
         return listing;
       });
 
       return listingsChanged ? updated : prevListings;
     });
-
-    // Simulated Live Rival Bids
-    const liveListings = listings.filter((l) => l.status === AuctionStatus.LIVE);
-    if (liveListings.length > 0) {
-      // Select random listing
-      const target = liveListings[Math.floor(Math.random() * liveListings.length)];
-
-      // Ensure it's not created by the active user (users don't bid on their own listings)
-      if (target.sellerId !== currentUser.id) {
-        const rivalNames = [
-          "Binyam Worku",
-          "Semere Teklay",
-          "Hana Girma",
-          "Michael Bekele",
-          "Solomon Kebede",
-          "Aster Teshome",
-          "Girma Ayele"
-        ];
-        const rivalIds = ["rival-1", "rival-2", "rival-3", "rival-4", "rival-5", "rival-6"];
-        const rIdx = Math.floor(Math.random() * rivalNames.length);
-
-        const bidAmount = target.currentBid + target.minIncrement + (Math.random() > 0.5 ? target.minIncrement : 0);
-
-        const newBid: Bid = {
-          id: `sim-bid-${Date.now()}`,
-          listingId: target.id,
-          bidderId: rivalIds[rIdx % rivalIds.length],
-          bidderName: rivalNames[rIdx],
-          amount: bidAmount,
-          timestamp: now.toISOString(),
-          isAutoBid: Math.random() > 0.7
-        };
-
-        // Process the bid
-        setBids((prevBids) => [...prevBids, newBid]);
-
-        setListings((prevListings) =>
-          prevListings.map((l) =>
-            l.id === target.id ? { ...l, currentBid: bidAmount } : l
-          )
-        );
-
-        // Check if active user was previously bidding on this and got outbid!
-        const userBidsOnThis = bids.filter((b) => b.listingId === target.id && b.bidderId === currentUser.id);
-        if (userBidsOnThis.length > 0) {
-          triggerNotification(
-            currentUser.id,
-            "⚠️ Outbid Warning!",
-            `You have been outbid on ${target.brand} ${target.model}. New high bid is ETB ${bidAmount.toLocaleString()} by ${rivalNames[rIdx]}!`,
-            "outbid",
-            target.id
-          );
-        }
-      }
-    }
   };
 
   const simulateTimeTickRef = useRef(simulateTimeTick);
@@ -409,14 +402,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const interval = setInterval(() => {
       simulateTimeTickRef.current();
-    }, 12000); // Trigger simulation every 12 seconds
+    }, 15000);
 
     return () => clearInterval(interval);
   }, []);
 
   const toggleTheme = () => setIsDarkMode((prev) => !prev);
 
-  // Authentication Switcher
+  // Authentication Operations
   const switchUser = (userId: string) => {
     const foundUser = users.find((u) => u.id === userId);
     if (foundUser) {
@@ -424,9 +417,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signOut = () => {
+  const signInWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error("Google Sign-In failed:", error);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (e) {
+      console.error("Sign-out error:", e);
+    }
     setCurrentUser(guestUser);
-    localStorage.removeItem("ethio_phone_current_user");
     setActiveTab("home");
   };
 
@@ -450,7 +455,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       phone: userData.phone,
       role: userData.role,
       location: userData.location,
-      photoUrl: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 1000000)}?w=150&auto=format&fit=crop&q=80`,
+      photoUrl: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
       rating: 5.0,
       reviewCount: 0,
       isVerifiedSeller: userData.role === UserRole.SHOP_OWNER,
@@ -460,7 +465,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUsers((prev) => [...prev, newUser]);
     setCurrentUser(newUser);
 
-    // If they signed up as a shop owner, register their shop automatically
+    setDoc(doc(db, "users", newUserId), newUser).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `users/${newUserId}`)
+    );
+
     if (userData.role === UserRole.SHOP_OWNER) {
       const newShopId = `shop-${Date.now()}`;
       const newShop: ShopProfile = {
@@ -472,20 +480,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
         phone: userData.phone,
         location: userData.location,
         rating: 5.0,
-        isVerified: true, // Auto-verified for immediate testing
+        isVerified: true,
         reviews: []
       };
       setShops((prev) => [...prev, newShop]);
+      setDoc(doc(db, "shops", newShopId), newShop).catch((e) =>
+        handleFirestoreError(e, OperationType.WRITE, `shops/${newShopId}`)
+      );
     }
 
     triggerNotification(
       newUserId,
-      "🎉 Welcome to ETPhone Auction!",
-      `Hello ${userData.name}, you have successfully signed up. ${
-        userData.role === UserRole.SHOP_OWNER
-          ? "You are signed up as a Shop Owner. You can list phones, view shop analytics, and access full administrative controls!"
-          : "You are registered as a bidder. Browse listings, view seller locations, and place bids to join the auction!"
-      }`,
+      "🎉 Welcome to YONIPhone Auction!",
+      `Hello ${userData.name}, you have successfully signed up on YONIPhone.`,
       "general"
     );
 
@@ -493,13 +500,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateProfile = (profileData: Partial<UserProfile>) => {
-    setUsers((prev) =>
-      prev.map((u) => (u.id === currentUser.id ? { ...u, ...profileData } : u))
+    const updated = { ...currentUser, ...profileData };
+    setUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updated : u)));
+    setCurrentUser(updated);
+
+    setDoc(doc(db, "users", currentUser.id), updated, { merge: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `users/${currentUser.id}`)
     );
-    setCurrentUser((prev) => ({ ...prev, ...profileData }));
   };
 
-  // Register physical shop for seller
   const registerShop = (shopData: Omit<ShopProfile, "id" | "ownerId" | "rating" | "reviews" | "isVerified">) => {
     const newShopId = `shop-${Date.now()}`;
     const newShop: ShopProfile = {
@@ -507,12 +516,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
       id: newShopId,
       ownerId: currentUser.id,
       rating: 5.0,
-      isVerified: false, // Requires Admin verification
+      isVerified: false,
       reviews: []
     };
 
     setShops((prev) => [...prev, newShop]);
-    // Upgrade current user profile to shop owner if not admin
+    setDoc(doc(db, "shops", newShopId), newShop).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `shops/${newShopId}`)
+    );
+
     if (currentUser.role !== UserRole.ADMIN) {
       updateProfile({ role: UserRole.SHOP_OWNER });
     }
@@ -520,32 +532,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     triggerNotification(
       currentUser.id,
       "🏪 Shop Registered",
-      `Your shop "${shopData.name}" has been submitted for verification. An administrator will review your application soon.`,
+      `Your shop "${shopData.name}" has been registered in Firestore database!`,
       "general"
     );
   };
 
-  // Create Listing with Fraud / IMEI checks
   const createListing = (listingData: Omit<PhoneListing, "id" | "sellerId" | "shopId" | "currentBid" | "status" | "isImeiVerified" | "createdAt" | "views" | "reportsCount">) => {
     if (currentUser.role !== UserRole.ADMIN) {
       return {
         success: false,
-        error: "🚫 Unauthorized! Only the EthioPhone Admin has the rights to upload phone listings and images."
+        error: "🚫 Unauthorized! Only the YONIPhone Admin has authorization to list phones."
       };
     }
 
-    // 1. Duplicate listing detection (IMEI checking)
     const activeImeiDuplicates = listings.filter(
       (l) => l.imei === listingData.imei && (l.status === AuctionStatus.LIVE || l.status === AuctionStatus.UPCOMING)
     );
     if (activeImeiDuplicates.length > 0) {
       return {
         success: false,
-        error: "🚫 Duplicate Listing Detected! An active auction with the same IMEI number is already registered."
+        error: "🚫 Duplicate Listing Detected! An active auction with the same IMEI number exists."
       };
     }
 
-    // 2. Validate IMEI format (15 digits usually)
     const cleanImei = listingData.imei.replace(/\s+/g, "");
     if (!/^\d{15}$/.test(cleanImei)) {
       return {
@@ -557,7 +566,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const listingId = `listing-${Date.now()}`;
     const userShop = shops.find((s) => s.ownerId === currentUser.id);
 
-    // Is upcoming or live?
     const startTime = new Date(listingData.startTime);
     const now = new Date();
     const isLive = now >= startTime;
@@ -569,18 +577,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
       shopId: userShop?.id,
       currentBid: listingData.startingBid,
       status: isLive ? AuctionStatus.LIVE : AuctionStatus.UPCOMING,
-      isImeiVerified: true, // Ethio Telecom verification mockup passed
+      isImeiVerified: true,
       createdAt: now.toISOString(),
       views: 0,
       reportsCount: 0
     };
 
     setListings((prev) => [newListing, ...prev]);
+    setDoc(doc(db, "listings", listingId), newListing).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `listings/${listingId}`)
+    );
 
     triggerNotification(
       currentUser.id,
       "🏷️ Listing Created",
-      `Your auction for ${newListing.brand} ${newListing.model} is now ${newListing.status === AuctionStatus.LIVE ? "live" : "upcoming"}! IMEI ${newListing.imei} verified.`,
+      `Your auction for ${newListing.brand} ${newListing.model} is now active on Firestore!`,
       "listing_approved",
       listingId
     );
@@ -589,98 +600,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const updateListing = (id: string, listingData: Partial<PhoneListing>) => {
-    if (currentUser.role !== UserRole.ADMIN) {
-      console.warn("Unauthorized listing edit attempt");
-      return;
-    }
+    if (currentUser.role !== UserRole.ADMIN) return;
     setListings((prev) =>
       prev.map((l) => (l.id === id ? { ...l, ...listingData } : l))
+    );
+    setDoc(doc(db, "listings", id), listingData, { merge: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${id}`)
     );
   };
 
   const deleteListing = (id: string) => {
-    if (currentUser.role !== UserRole.ADMIN) {
-      console.warn("Unauthorized listing delete attempt");
-      return;
-    }
+    if (currentUser.role !== UserRole.ADMIN) return;
     setListings((prev) => prev.filter((l) => l.id !== id));
-    setBids((prev) => prev.filter((b) => b.listingId !== id));
+    deleteDoc(doc(db, "listings", id)).catch((e) =>
+      handleFirestoreError(e, OperationType.DELETE, `listings/${id}`)
+    );
   };
 
   const deleteBid = (bidId: string) => {
-    if (currentUser.role !== UserRole.ADMIN) {
-      console.warn("Unauthorized delete bid attempt");
-      return;
-    }
-    const bidToDelete = bids.find((b) => b.id === bidId);
-    if (!bidToDelete) return;
-
-    const listingId = bidToDelete.listingId;
-    const remainingBids = bids.filter((b) => b.id !== bidId && b.listingId === listingId);
-
+    if (currentUser.role !== UserRole.ADMIN) return;
     setBids((prev) => prev.filter((b) => b.id !== bidId));
-
-    // Update currentBid for the listing
-    setListings((prevListings) =>
-      prevListings.map((l) => {
-        if (l.id === listingId) {
-          if (remainingBids.length > 0) {
-            const maxBid = Math.max(...remainingBids.map((b) => b.amount));
-            return { ...l, currentBid: maxBid };
-          } else {
-            return { ...l, currentBid: l.startingBid };
-          }
-        }
-        return l;
-      })
+    deleteDoc(doc(db, "bids", bidId)).catch((e) =>
+      handleFirestoreError(e, OperationType.DELETE, `bids/${bidId}`)
     );
   };
 
   const updateBidAmount = (bidId: string, newAmount: number) => {
-    if (currentUser.role !== UserRole.ADMIN) {
-      console.warn("Unauthorized update bid attempt");
-      return;
-    }
+    if (currentUser.role !== UserRole.ADMIN) return;
     setBids((prev) =>
       prev.map((b) => (b.id === bidId ? { ...b, amount: newAmount } : b))
     );
-
-    // Re-calculate highest bid for that listing
-    const updatedBid = bids.find((b) => b.id === bidId);
-    if (updatedBid) {
-      const listingId = updatedBid.listingId;
-      setListings((prevListings) =>
-        prevListings.map((l) => {
-          if (l.id === listingId) {
-            const listingBids = bids
-              .map((b) => (b.id === bidId ? { ...b, amount: newAmount } : b))
-              .filter((b) => b.listingId === listingId);
-            if (listingBids.length > 0) {
-              const maxBid = Math.max(...listingBids.map((b) => b.amount));
-              return { ...l, currentBid: maxBid };
-            } else {
-              return { ...l, currentBid: l.startingBid };
-            }
-          }
-          return l;
-        })
-      );
-    }
+    updateDoc(doc(db, "bids", bidId), { amount: newAmount }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `bids/${bidId}`)
+    );
   };
 
   const featureListing = (id: string) => {
+    const listing = listings.find((l) => l.id === id);
+    if (!listing) return;
+    const isFeatured = !listing.isFeatured;
     setListings((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, isFeatured: !l.isFeatured } : l))
+      prev.map((l) => (l.id === id ? { ...l, isFeatured } : l))
+    );
+    updateDoc(doc(db, "listings", id), { isFeatured }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${id}`)
     );
   };
 
   const incrementViews = (id: string) => {
+    const listing = listings.find((l) => l.id === id);
+    if (!listing) return;
+    const views = listing.views + 1;
     setListings((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, views: l.views + 1 } : l))
+      prev.map((l) => (l.id === id ? { ...l, views } : l))
+    );
+    updateDoc(doc(db, "listings", id), { views }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${id}`)
     );
   };
 
-  // Place a Bid
   const placeBid = (listingId: string, amount: number) => {
     if (currentUser.id === "guest") {
       return { success: false, error: "Please sign in to place a bid on this device." };
@@ -705,8 +683,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       return { success: false, error: "You cannot bid on your own phone auction." };
     }
 
+    const newBidId = `bid-${Date.now()}`;
     const newBid: Bid = {
-      id: `bid-${Date.now()}`,
+      id: newBidId,
       listingId,
       bidderId: currentUser.id,
       bidderName: currentUser.name,
@@ -719,12 +698,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       prev.map((l) => (l.id === listingId ? { ...l, currentBid: amount } : l))
     );
 
-    // Watch list automatic addition when bidding
+    setDoc(doc(db, "bids", newBidId), newBid).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `bids/${newBidId}`)
+    );
+    updateDoc(doc(db, "listings", listingId), { currentBid: amount }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${listingId}`)
+    );
+
     if (!watchlist.includes(listingId)) {
       setWatchlist((prev) => [...prev, listingId]);
     }
 
-    // Trigger notification to seller
     triggerNotification(
       listing.sellerId,
       "💰 New Bid Placed",
@@ -736,7 +720,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return { success: true };
   };
 
-  // Buy Now Feature
   const buyNow = (listingId: string) => {
     if (currentUser.id === "guest") {
       return { success: false, error: "Please sign in to buy this phone." };
@@ -756,9 +739,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     const now = new Date();
     const finalAmount = listing.buyNowPrice;
+    const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
+    const newBidId = `bid-${Date.now()}`;
     const newBid: Bid = {
-      id: `bid-${Date.now()}`,
+      id: newBidId,
       listingId,
       bidderId: currentUser.id,
       bidderName: currentUser.name,
@@ -767,37 +752,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     setBids((prev) => [...prev, newBid]);
-
-    const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    setListings((prev) =>
-      prev.map((l) =>
-        l.id === listingId
-          ? {
-              ...l,
-              currentBid: finalAmount,
-              status: AuctionStatus.ENDED,
-              winnerId: currentUser.id,
-              pickupCode: confirmationCode
-            }
-          : l
-      )
+    setDoc(doc(db, "bids", newBidId), newBid).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `bids/${newBidId}`)
     );
 
-    // Notify buyer
+    const updatedListing = {
+      currentBid: finalAmount,
+      status: AuctionStatus.ENDED,
+      winnerId: currentUser.id,
+      pickupCode: confirmationCode
+    };
+
+    setListings((prev) =>
+      prev.map((l) => (l.id === listingId ? { ...l, ...updatedListing } : l))
+    );
+
+    updateDoc(doc(db, "listings", listingId), updatedListing).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${listingId}`)
+    );
+
     triggerNotification(
       currentUser.id,
       "🏆 Bought It Now!",
-      `You bought ${listing.brand} ${listing.model} instantly for ETB ${finalAmount.toLocaleString()}! Visit seller location to pick up. Code: ${confirmationCode}`,
+      `You bought ${listing.brand} ${listing.model} instantly for ETB ${finalAmount.toLocaleString()}! Code: ${confirmationCode}`,
       "auction_won",
       listingId
     );
 
-    // Notify seller
     triggerNotification(
       listing.sellerId,
       "📦 Immediate Sale!",
-      `${currentUser.name} bought your ${listing.brand} ${listing.model} using Buy Now for ETB ${finalAmount.toLocaleString()}! Pickup is pending.`,
+      `${currentUser.name} bought your ${listing.brand} ${listing.model} using Buy Now for ETB ${finalAmount.toLocaleString()}!`,
       "auction_ended",
       listingId
     );
@@ -805,7 +790,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return { success: true };
   };
 
-  // Watchlist Favorites
   const toggleWatchlist = (listingId: string) => {
     setWatchlist((prev) =>
       prev.includes(listingId)
@@ -814,7 +798,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  // Internal helper to shoot notification
   const triggerNotification = (
     userId: string,
     title: string,
@@ -822,8 +805,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     type: Notification["type"],
     listingId?: string
   ) => {
+    const notifId = `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     const newNotif: Notification = {
-      id: `notif-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      id: notifId,
       userId,
       title,
       message,
@@ -833,13 +817,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString()
     };
     setNotifications((prev) => [newNotif, ...prev]);
+    setDoc(doc(db, "notifications", notifId), newNotif).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `notifications/${notifId}`)
+    );
   };
 
-  // Direct chat messaging
   const sendMessage = (receiverId: string, listingId: string, text: string) => {
     if (currentUser.id === "guest") return;
+    const msgId = `msg-${Date.now()}`;
     const newMsg: ChatMessage = {
-      id: `msg-${Date.now()}`,
+      id: msgId,
       senderId: currentUser.id,
       receiverId,
       listingId,
@@ -847,6 +834,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       createdAt: new Date().toISOString()
     };
     setMessages((prev) => [...prev, newMsg]);
+    setDoc(doc(db, "messages", msgId), newMsg).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `messages/${msgId}`)
+    );
   };
 
   const getChatPartners = (): UserProfile[] => {
@@ -869,13 +859,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
       .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   };
 
-  // Submitting reports
   const submitReport = (listingId: string, reason: string, details: string) => {
     const listing = listings.find((l) => l.id === listingId);
     if (!listing) return;
 
+    const repId = `rep-${Date.now()}`;
     const newReport: Report = {
-      id: `rep-${Date.now()}`,
+      id: repId,
       listingId,
       listingTitle: `${listing.brand} ${listing.model}`,
       reporterId: currentUser.id,
@@ -887,8 +877,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     setReports((prev) => [newReport, ...prev]);
+    setDoc(doc(db, "reports", repId), newReport).catch((e) =>
+      handleFirestoreError(e, OperationType.WRITE, `reports/${repId}`)
+    );
+
+    const reportsCount = listing.reportsCount + 1;
     setListings((prev) =>
-      prev.map((l) => (l.id === listingId ? { ...l, reportsCount: l.reportsCount + 1 } : l))
+      prev.map((l) => (l.id === listingId ? { ...l, reportsCount } : l))
+    );
+    updateDoc(doc(db, "listings", listingId), { reportsCount }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${listingId}`)
     );
   };
 
@@ -905,12 +903,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       prevShops.map((s) => {
         if (s.id === shopId) {
           const updatedReviews = [newReview, ...s.reviews];
-          const average = updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
-          return {
-            ...s,
-            reviews: updatedReviews,
-            rating: parseFloat(average.toFixed(1))
-          };
+          const average = parseFloat((updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length).toFixed(1));
+          const updatedShop = { ...s, reviews: updatedReviews, rating: average };
+          setDoc(doc(db, "shops", shopId), updatedShop, { merge: true }).catch((e) =>
+            handleFirestoreError(e, OperationType.UPDATE, `shops/${shopId}`)
+          );
+          return updatedShop;
         }
         return s;
       })
@@ -924,20 +922,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (currentUser.id === userId) {
       setCurrentUser((prev) => ({ ...prev, isVerifiedSeller: true }));
     }
-    triggerNotification(userId, "✅ Account Verified", "Your account has been verified by the administrator. A verification badge has been added to your profile.", "general");
+    updateDoc(doc(db, "users", userId), { isVerifiedSeller: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `users/${userId}`)
+    );
+    triggerNotification(userId, "✅ Account Verified", "Your account has been verified by administrator.", "general");
   };
 
   const verifyShop = (shopId: string) => {
     setShops((prev) =>
       prev.map((s) => (s.id === shopId ? { ...s, isVerified: true } : s))
     );
+    updateDoc(doc(db, "shops", shopId), { isVerified: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `shops/${shopId}`)
+    );
     const shop = shops.find((s) => s.id === shopId);
     if (shop) {
-      triggerNotification(shop.ownerId, "🏬 Shop Verified!", `Your shop "${shop.name}" has been fully verified. You now hold a Verified Shop Badge!`, "general");
+      triggerNotification(shop.ownerId, "🏬 Shop Verified!", `Your shop "${shop.name}" has been fully verified.`, "general");
     }
   };
 
-  // In-person pickup validation (The Verification Code loop)
   const verifyPickupCode = (listingId: string, code: string) => {
     const listing = listings.find((l) => l.id === listingId);
     if (!listing) return { success: false, error: "Listing not found" };
@@ -947,31 +950,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
 
     if (listing.pickupCode !== code.trim()) {
-      return { success: false, error: "Incorrect verification code. Please ask the buyer to show the correct 6-digit code." };
+      return { success: false, error: "Incorrect verification code. Please ask buyer for 6-digit code." };
     }
 
     setListings((prev) =>
-      prev.map((l) =>
-        l.id === listingId ? { ...l, status: AuctionStatus.COMPLETED } : l
-      )
+      prev.map((l) => (l.id === listingId ? { ...l, status: AuctionStatus.COMPLETED } : l))
+    );
+    updateDoc(doc(db, "listings", listingId), { status: AuctionStatus.COMPLETED }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `listings/${listingId}`)
     );
 
-    // Notify buyer
     if (listing.winnerId) {
       triggerNotification(
         listing.winnerId,
         "🤝 Pickup Completed!",
-        `Your pickup for ${listing.brand} ${listing.model} has been verified by the seller. The transaction is complete. Thank you for using ETPhone!`,
+        `Pickup for ${listing.brand} ${listing.model} has been verified by the seller!`,
         "pickup_verified",
         listingId
       );
     }
 
-    // Notify seller
     triggerNotification(
       listing.sellerId,
       "💚 Transaction Completed!",
-      `You successfully verified the pickup code. Your smartphone sale for ${listing.brand} ${listing.model} is now completed.`,
+      `You successfully verified pickup for ${listing.brand} ${listing.model}.`,
       "pickup_verified",
       listingId
     );
@@ -979,7 +981,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return { success: true };
   };
 
-  // Resolve admin report
   const resolveReport = (reportId: string, action: "delete_listing" | "dismiss") => {
     const report = reports.find((r) => r.id === reportId);
     if (!report) return;
@@ -991,11 +992,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setReports((prev) =>
       prev.map((r) => (r.id === reportId ? { ...r, status: "resolved" } : r))
     );
+    updateDoc(doc(db, "reports", reportId), { status: "resolved" }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `reports/${reportId}`)
+    );
   };
 
   const blockUser = (userId: string) => {
     setUsers((prev) =>
       prev.map((u) => (u.id === userId ? { ...u, isBlocked: true } : u))
+    );
+    updateDoc(doc(db, "users", userId), { isBlocked: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `users/${userId}`)
     );
   };
 
@@ -1003,12 +1010,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
     );
+    updateDoc(doc(db, "notifications", id), { isRead: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `notifications/${id}`)
+    );
   };
 
   const clearNotifications = () => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.userId === currentUser.id ? { ...n, isRead: true } : n))
-    );
+    notifications
+      .filter((n) => n.userId === currentUser.id && !n.isRead)
+      .forEach((n) => markNotificationRead(n.id));
   };
 
   return (
@@ -1025,6 +1035,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         watchlist,
         switchUser,
         signOut,
+        signInWithGoogle,
         signupUser,
         updateProfile,
         registerShop,

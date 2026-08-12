@@ -81,7 +81,7 @@ export default function SignupPage({ onSignupSuccess }: SignupPageProps) {
             </p>
           </div>
           <div className="bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] rounded-2xl p-4 text-[11px] text-gray-500 leading-normal">
-            Redirecting to the EthioPhone live auction floor...
+            Redirecting to the YONIPhone live auction floor...
           </div>
         </div>
       </div>

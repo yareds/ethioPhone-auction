@@ -1,0 +1,172 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile document containing user role, location, and contact information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "email": { "type": "string", "maxLength": 120 },
+        "phone": { "type": "string", "maxLength": 40 },
+        "role": { "type": "string", "enum": ["buyer", "seller", "shop_owner", "admin"] },
+        "location": { "type": "object" },
+        "photoUrl": { "type": "string", "maxLength": 500 },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "isVerifiedSeller": { "type": "boolean" },
+        "joinedDate": { "type": "string" },
+        "isBlocked": { "type": "boolean" }
+      },
+      "required": ["id", "name", "email", "role"]
+    },
+    "ShopProfile": {
+      "title": "ShopProfile",
+      "description": "Registered retail shop profile selling verified smartphones",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "ownerId": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 120 },
+        "logoUrl": { "type": "string", "maxLength": 500 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "phone": { "type": "string", "maxLength": 40 },
+        "location": { "type": "object" },
+        "rating": { "type": "number" },
+        "reviews": { "type": "array" },
+        "isVerified": { "type": "boolean" },
+        "bannerColor": { "type": "string", "maxLength": 100 }
+      },
+      "required": ["id", "ownerId", "name", "phone"]
+    },
+    "PhoneListing": {
+      "title": "PhoneListing",
+      "description": "Smartphone auction listing details",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "sellerId": { "type": "string", "maxLength": 128 },
+        "shopId": { "type": "string", "maxLength": 128 },
+        "brand": { "type": "string", "maxLength": 80 },
+        "model": { "type": "string", "maxLength": 100 },
+        "storage": { "type": "string", "maxLength": 30 },
+        "ram": { "type": "string", "maxLength": 30 },
+        "batteryHealth": { "type": "number" },
+        "condition": { "type": "string", "enum": ["brand_new", "excellent", "very_good", "good", "fair"] },
+        "conditionDetails": { "type": "string", "maxLength": 1000 },
+        "imei": { "type": "string", "maxLength": 30 },
+        "isImeiVerified": { "type": "boolean" },
+        "accessories": { "type": "array" },
+        "images": { "type": "array" },
+        "videoUrl": { "type": "string", "maxLength": 500 },
+        "startingBid": { "type": "number" },
+        "currentBid": { "type": "number" },
+        "minIncrement": { "type": "number" },
+        "buyNowPrice": { "type": "number" },
+        "sellerLocation": { "type": "object" },
+        "status": { "type": "string", "enum": ["upcoming", "live", "ended", "won", "pickup_pending", "completed"] },
+        "startTime": { "type": "string" },
+        "endTime": { "type": "string" },
+        "winnerId": { "type": "string", "maxLength": 128 },
+        "pickupCode": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string" },
+        "views": { "type": "number" },
+        "isFeatured": { "type": "boolean" },
+        "reportsCount": { "type": "number" }
+      },
+      "required": ["id", "sellerId", "brand", "model", "startingBid", "currentBid", "status"]
+    },
+    "Bid": {
+      "title": "Bid",
+      "description": "Bid record on a smartphone auction",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "listingId": { "type": "string", "maxLength": 128 },
+        "bidderId": { "type": "string", "maxLength": 128 },
+        "bidderName": { "type": "string", "maxLength": 120 },
+        "amount": { "type": "number" },
+        "timestamp": { "type": "string" },
+        "isAutoBid": { "type": "boolean" }
+      },
+      "required": ["id", "listingId", "bidderId", "amount", "timestamp"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "User system notification",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 120 },
+        "message": { "type": "string", "maxLength": 500 },
+        "type": { "type": "string" },
+        "listingId": { "type": "string", "maxLength": 128 },
+        "isRead": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "message", "isRead", "createdAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Direct message between buyer and seller regarding a listing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "senderId": { "type": "string", "maxLength": 128 },
+        "receiverId": { "type": "string", "maxLength": 128 },
+        "listingId": { "type": "string", "maxLength": 128 },
+        "text": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "senderId", "receiverId", "listingId", "text", "createdAt"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "Listing flag or report",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "listingId": { "type": "string", "maxLength": 128 },
+        "listingTitle": { "type": "string", "maxLength": 120 },
+        "reporterId": { "type": "string", "maxLength": 128 },
+        "reporterName": { "type": "string", "maxLength": 120 },
+        "reason": { "type": "string", "maxLength": 120 },
+        "details": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending", "resolved", "dismissed"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "listingId", "reporterId", "reason", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "User profile collection"
+    },
+    "/shops/{shopId}": {
+      "schema": { "$ref": "#/entities/ShopProfile" },
+      "description": "Shop profiles collection"
+    },
+    "/listings/{listingId}": {
+      "schema": { "$ref": "#/entities/PhoneListing" },
+      "description": "Auction phone listings collection"
+    },
+    "/bids/{bidId}": {
+      "schema": { "$ref": "#/entities/Bid" },
+      "description": "Bids placed on phone listings"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/Notification" },
+      "description": "User notifications"
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "Direct chat messages"
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/Report" },
+      "description": "Reported listings"
+    }
+  }
+}

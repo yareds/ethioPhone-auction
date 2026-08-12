@@ -147,7 +147,7 @@ export default function HeroSection() {
                     
                     <div className="relative z-10 flex justify-between items-start text-slate-200 text-xs font-semibold">
                       <span className="flex items-center font-sans-logo">
-                        <span className="font-serif-logo italic font-extrabold text-[var(--color-gold)] mr-[0.03em]">ET</span>
+                        <span className="font-serif-logo italic font-extrabold text-[var(--color-gold)] mr-[0.03em]">YONI</span>
                         <span className="font-extrabold flex items-center">
                           <span>Ph</span>
                           <PhoneLetterO colorClass="text-[var(--color-gold)]" className="h-[0.88em] w-auto inline-block align-middle mx-[0.02em]" />

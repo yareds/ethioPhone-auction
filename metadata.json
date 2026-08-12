@@ -1,5 +1,5 @@
 {
-  "name": "ETPhone Auction",
+  "name": "YONIPhone Auction",
   "description": "A modern, production-ready real-time auction marketplace for used smartphones in Ethiopia, supporting verified shops and individual sellers.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
