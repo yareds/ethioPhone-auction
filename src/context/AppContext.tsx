@@ -17,6 +17,7 @@ import {
 import { 
   collection, 
   doc, 
+  getDoc,
   onSnapshot, 
   setDoc, 
   updateDoc, 
@@ -29,6 +30,7 @@ import {
 } from "firebase/firestore";
 import { 
   signInWithPopup, 
+  linkWithPopup,
   signOut as firebaseSignOut, 
   onAuthStateChanged, 
   User as FirebaseUser 
@@ -67,6 +69,9 @@ interface AppContextType {
   switchUser: (userId: string) => void;
   signOut: () => void;
   signInWithGoogle: () => Promise<void>;
+  linkGoogleAccount: () => Promise<{ success: boolean; error?: string }>;
+  isPhoneSignedIn: boolean;
+  isGoogleLinked: boolean;
   signupUser: (userData: {
     name: string;
     email: string;
@@ -207,6 +212,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setShops(fetchedShops);
       } else {
         setShops(initialShops);
+        initialShops.forEach((s) => {
+          setDoc(doc(db, "shops", s.id), s).catch(() => {});
+        });
       }
     }, (err) => {
       console.warn("Public shops read failed, using local initialShops", err);
@@ -219,6 +227,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setListings(fetchedListings);
       } else {
         setListings(initialListings);
+        initialListings.forEach((l) => {
+          setDoc(doc(db, "listings", l.id), l).catch(() => {});
+        });
       }
     }, (err) => {
       console.warn("Public listings read failed, using local initialListings", err);
@@ -231,6 +242,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setBids(fetchedBids);
       } else {
         setBids(initialBids);
+        initialBids.forEach((b) => {
+          setDoc(doc(db, "bids", b.id), b).catch(() => {});
+        });
       }
     }, (err) => {
       console.warn("Public bids read failed, using local initialBids", err);
@@ -247,33 +261,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       if (fbUser) {
         const isAdminUser = fbUser.email === "yared.abegaz@gmail.com";
-        const userProfile: UserProfile = {
-          id: fbUser.uid,
-          name: fbUser.displayName || fbUser.email?.split("@")[0] || "Firebase User",
-          email: fbUser.email || "",
-          phone: fbUser.phoneNumber || "+251911000000",
-          role: isAdminUser ? UserRole.ADMIN : UserRole.BUYER,
-          location: {
-            region: "Addis Ababa",
-            city: "Addis Ababa",
-            subCity: "Bole",
-            address: "Bole Road"
-          },
-          photoUrl: fbUser.photoURL || undefined,
-          rating: 5.0,
-          reviewCount: 0,
-          isVerifiedSeller: true,
-          joinedDate: new Date().toISOString()
-        };
+        const userDocRef = doc(db, "users", fbUser.uid);
+        let userProfile: UserProfile;
+
+        try {
+          const userSnap = await getDoc(userDocRef);
+          if (userSnap.exists()) {
+            userProfile = userSnap.data() as UserProfile;
+            if (isAdminUser) {
+              userProfile.role = UserRole.ADMIN;
+            }
+          } else {
+            userProfile = {
+              id: fbUser.uid,
+              name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : "EthioPhone Buyer"),
+              email: fbUser.email || "",
+              phone: fbUser.phoneNumber || "",
+              role: isAdminUser ? UserRole.ADMIN : UserRole.BUYER,
+              location: {
+                region: "Addis Ababa",
+                city: "Addis Ababa",
+                subCity: "Bole",
+                address: "Bole Central Area"
+              },
+              photoUrl: fbUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+              rating: 5.0,
+              reviewCount: 0,
+              isVerifiedSeller: isAdminUser,
+              joinedDate: new Date().toISOString()
+            };
+
+            await setDoc(userDocRef, userProfile);
+          }
+        } catch (err) {
+          handleFirestoreError(err, OperationType.WRITE, `users/${fbUser.uid}`);
+          userProfile = {
+            id: fbUser.uid,
+            name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : "EthioPhone Buyer"),
+            email: fbUser.email || "",
+            phone: fbUser.phoneNumber || "",
+            role: isAdminUser ? UserRole.ADMIN : UserRole.BUYER,
+            location: {
+              region: "Addis Ababa",
+              city: "Addis Ababa",
+              subCity: "Bole",
+              address: "Bole Central Area"
+            },
+            photoUrl: fbUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+            rating: 5.0,
+            reviewCount: 0,
+            isVerifiedSeller: isAdminUser,
+            joinedDate: new Date().toISOString()
+          };
+        }
 
         setCurrentUser(userProfile);
-
-        // Upsert user to Firestore
-        try {
-          await setDoc(doc(db, "users", fbUser.uid), userProfile, { merge: true });
-        } catch (err) {
-          console.error("Error saving user to Firestore:", err);
-        }
 
         // Subscribe to users collection (allowed for signed-in users)
         const unsubUsers = onSnapshot(collection(db, "users"), (snapshot) => {
@@ -457,8 +499,61 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await signInWithPopup(auth, googleProvider);
     } catch (error) {
       console.error("Google Sign-In failed:", error);
+      throw error;
     }
   };
+
+  const linkGoogleAccount = async (): Promise<{ success: boolean; error?: string }> => {
+    if (!auth.currentUser) {
+      return { success: false, error: "No active authenticated session." };
+    }
+    try {
+      const result = await linkWithPopup(auth.currentUser, googleProvider);
+      const updatedUser = result.user;
+
+      const updatedFields: Partial<UserProfile> = {};
+      if (updatedUser.email && !currentUser.email) {
+        updatedFields.email = updatedUser.email;
+      }
+      if (updatedUser.photoURL && !currentUser.photoUrl) {
+        updatedFields.photoUrl = updatedUser.photoURL;
+      }
+      if (updatedUser.displayName && (!currentUser.name || currentUser.name.startsWith("User"))) {
+        updatedFields.name = updatedUser.displayName;
+      }
+
+      if (Object.keys(updatedFields).length > 0) {
+        setCurrentUser((prev) => ({ ...prev, ...updatedFields }));
+        try {
+          await updateDoc(doc(db, "users", updatedUser.uid), updatedFields);
+        } catch (e) {
+          console.warn("Could not update Firestore user doc after link:", e);
+        }
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error("Error linking Google account:", error);
+      let message = error.message || "Failed to link Google account.";
+      if (
+        error.code === "auth/credential-already-in-use" ||
+        error.code === "auth/email-already-in-use" ||
+        error.code === "auth/account-exists-with-different-credential"
+      ) {
+        message = "This Google account is already linked to a different user account.";
+      }
+      return { success: false, error: message };
+    }
+  };
+
+  const isPhoneSignedIn = Boolean(
+    auth.currentUser?.providerData.some((p) => p.providerId === "phone") ||
+      (currentUser.id !== "guest" && currentUser.phone && !auth.currentUser?.providerData.some((p) => p.providerId === "google.com"))
+  );
+
+  const isGoogleLinked = Boolean(
+    auth.currentUser?.providerData.some((p) => p.providerId === "google.com")
+  );
 
   const signOut = async () => {
     try {
@@ -482,7 +577,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
     role: UserRole;
   }) => {
-    const newUserId = `user-${Date.now()}`;
+    const newUserId = auth.currentUser ? auth.currentUser.uid : `user-${Date.now()}`;
     const newUser: UserProfile = {
       id: newUserId,
       name: userData.name,
@@ -539,8 +634,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUsers((prev) => prev.map((u) => (u.id === currentUser.id ? updated : u)));
     setCurrentUser(updated);
 
-    setDoc(doc(db, "users", currentUser.id), updated, { merge: true }).catch((e) =>
-      handleFirestoreError(e, OperationType.UPDATE, `users/${currentUser.id}`)
+    const targetDocId = auth.currentUser ? auth.currentUser.uid : currentUser.id;
+    setDoc(doc(db, "users", targetDocId), updated, { merge: true }).catch((e) =>
+      handleFirestoreError(e, OperationType.UPDATE, `users/${targetDocId}`)
     );
   };
 
@@ -705,6 +801,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const newBidId = `bid-${Date.now()}`;
     const bidRef = doc(db, "bids", newBidId);
 
+    // Pre-check if listing document exists in Firestore; if missing but present in local state, seed it first
+    try {
+      const checkSnap = await getDoc(listingRef);
+      if (!checkSnap.exists()) {
+        const localListing = listings.find((l) => l.id === listingId);
+        if (localListing) {
+          await setDoc(listingRef, localListing);
+        }
+      }
+    } catch (e) {
+      console.warn("Pre-check listing doc error:", e);
+    }
+
     try {
       let sellerId = "";
       let brand = "";
@@ -712,11 +821,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
       await runTransaction(db, async (transaction) => {
         const listingDoc = await transaction.get(listingRef);
-        if (!listingDoc.exists()) {
-          throw new Error("Listing not found");
-        }
+        let listingData: PhoneListing;
 
-        const listingData = listingDoc.data() as PhoneListing;
+        if (!listingDoc.exists()) {
+          const localListing = listings.find((l) => l.id === listingId);
+          if (localListing) {
+            transaction.set(listingRef, localListing);
+            listingData = localListing;
+          } else {
+            throw new Error("Listing not found");
+          }
+        } else {
+          listingData = listingDoc.data() as PhoneListing;
+        }
 
         if (listingData.status !== AuctionStatus.LIVE) {
           throw new Error("Auction is not currently live");
@@ -740,11 +857,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         brand = listingData.brand;
         model = listingData.model;
 
+        const effectiveBidderId = auth.currentUser ? auth.currentUser.uid : currentUser.id;
+        const effectiveBidderName = currentUser.name || auth.currentUser?.displayName || "EthioPhone Buyer";
+
         const newBid: Bid = {
           id: newBidId,
           listingId,
-          bidderId: currentUser.id,
-          bidderName: currentUser.name,
+          bidderId: effectiveBidderId,
+          bidderName: effectiveBidderName,
           amount,
           timestamp: new Date().toISOString()
         };
@@ -802,6 +922,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const now = new Date();
     const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
+    // Pre-check if listing document exists in Firestore; if missing but present in local state, seed it first
+    try {
+      const checkSnap = await getDoc(listingRef);
+      if (!checkSnap.exists()) {
+        const localListing = listings.find((l) => l.id === listingId);
+        if (localListing) {
+          await setDoc(listingRef, localListing);
+        }
+      }
+    } catch (e) {
+      console.warn("Pre-check listing doc error:", e);
+    }
+
     let finalAmount = 0;
     let sellerId = "";
     let brand = "";
@@ -810,11 +943,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       await runTransaction(db, async (transaction) => {
         const listingDoc = await transaction.get(listingRef);
-        if (!listingDoc.exists()) {
-          throw new Error("Listing not found");
-        }
+        let listingData: PhoneListing;
 
-        const listingData = listingDoc.data() as PhoneListing;
+        if (!listingDoc.exists()) {
+          const localListing = listings.find((l) => l.id === listingId);
+          if (localListing) {
+            transaction.set(listingRef, localListing);
+            listingData = localListing;
+          } else {
+            throw new Error("Listing not found");
+          }
+        } else {
+          listingData = listingDoc.data() as PhoneListing;
+        }
 
         if (!listingData.buyNowPrice) {
           throw new Error("Buy now not available for this listing");
@@ -833,11 +974,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         brand = listingData.brand;
         model = listingData.model;
 
+        const effectiveBidderId = auth.currentUser ? auth.currentUser.uid : currentUser.id;
+        const effectiveBidderName = currentUser.name || auth.currentUser?.displayName || "EthioPhone Buyer";
+
         const newBid: Bid = {
           id: newBidId,
           listingId,
-          bidderId: currentUser.id,
-          bidderName: currentUser.name,
+          bidderId: effectiveBidderId,
+          bidderName: effectiveBidderName,
           amount: finalAmount,
           timestamp: now.toISOString()
         };
@@ -1153,6 +1297,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         switchUser,
         signOut,
         signInWithGoogle,
+        linkGoogleAccount,
+        isPhoneSignedIn,
+        isGoogleLinked,
         signupUser,
         updateProfile,
         registerShop,
