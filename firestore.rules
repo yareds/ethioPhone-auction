@@ -2,17 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Default Deny
     match /{document=**} {
       allow read, write: if false;
     }
 
-    // Ping / connection test
     match /_connection_test_/{docId} {
       allow read: if true;
     }
 
-    // Helper functions
     function isSignedIn() {
       return request.auth != null;
     }
@@ -22,11 +19,9 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isSignedIn() && (
-        (request.auth.token.keys().hasAll(['email']) && request.auth.token.email.lower() == 'yared.abegaz@gmail.com') ||
-        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
-      );
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
     function incoming() {
@@ -37,47 +32,70 @@ service cloud.firestore {
       return resource.data;
     }
 
-    // Users Collection
     match /users/{userId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
+      allow create: if isOwner(userId) &&
+        incoming().id == userId &&
+        incoming().name is string && incoming().name.size() <= 120 &&
+        incoming().role == 'buyer';
+      allow update: if (isOwner(userId) || isAdmin()) &&
+        incoming().id == existing().id &&
+        (isAdmin() || incoming().role == existing().role);
       allow delete: if isAdmin();
     }
 
-    // Shops Collection
     match /shops/{shopId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
-      allow delete: if isAdmin();
+      allow write: if isAdmin();
     }
 
-    // Listings Collection
     match /listings/{listingId} {
       allow read: if true;
-      allow create, update: if isSignedIn();
-      allow delete: if isSignedIn() && (existing().sellerId == request.auth.uid || isAdmin());
-    }
-
-    // Bids Collection
-    match /bids/{bidId} {
-      allow read: if true;
-      allow create, update: if isSignedIn();
+      allow create: if isAdmin() &&
+        incoming().sellerId == request.auth.uid;
+      allow update: if isSignedIn() &&
+        existing().status != 'completed' &&
+        incoming().sellerId == existing().sellerId &&
+        (
+          isAdmin() ||
+          incoming().diff(existing()).affectedKeys().hasOnly(['currentBid', 'winnerId', 'views', 'status', 'pickupCode', 'reportsCount', 'bidCount'])
+        );
       allow delete: if isAdmin();
     }
 
-    // Notifications Collection
+    match /bids/{bidId} {
+      allow read: if true;
+      allow create: if isSignedIn() &&
+        incoming().bidderId == request.auth.uid &&
+        incoming().amount is number && incoming().amount > 0 &&
+        exists(/databases/$(database)/documents/listings/$(incoming().listingId)) &&
+        get(/databases/$(database)/documents/listings/$(incoming().listingId)).data.status == 'live' &&
+        incoming().amount > get(/databases/$(database)/documents/listings/$(incoming().listingId)).data.currentBid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     match /notifications/{notificationId} {
-      allow read, create, update, delete: if isSignedIn();
+      allow read: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin()) &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['isRead']);
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid || isAdmin());
     }
 
-    // Direct Messages Collection
     match /messages/{messageId} {
-      allow read, create, update, delete: if isSignedIn();
+      allow read: if isSignedIn() &&
+        (existing().senderId == request.auth.uid || existing().receiverId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && incoming().senderId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isSignedIn() && (existing().senderId == request.auth.uid || isAdmin());
     }
 
-    // Reports Collection
     match /reports/{reportId} {
-      allow read, create, update, delete: if isSignedIn();
+      allow read: if isAdmin() || (isSignedIn() && existing().reporterId == request.auth.uid);
+      allow create: if isSignedIn() && incoming().reporterId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
   }
 }
