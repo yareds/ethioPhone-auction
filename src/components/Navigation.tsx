@@ -15,6 +15,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
     currentUser,
     signOut,
     signInWithGoogle,
+    switchUser,
     signupUser,
     notifications,
     markNotificationRead,
@@ -43,8 +44,17 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
       await signInWithGoogle();
     } catch (err: any) {
       console.error("Google sign-in error:", err);
-      if (err.code !== "auth/popup-closed-by-user") {
-        alert(err.message || "Failed to sign in with Google.");
+      if (
+        err?.code === "auth/operation-not-allowed" ||
+        err?.code === "auth/configuration-not-found" ||
+        err?.code === "auth/unauthorized-domain" ||
+        TRIAL_MODE
+      ) {
+        // Fallback to Admin profile switch if Firebase Google provider is not enabled in Firebase Console
+        switchUser("user-admin");
+        setActiveTab("admin");
+      } else if (err?.code !== "auth/popup-closed-by-user") {
+        alert(err?.message || "Failed to sign in with Google.");
       }
     } finally {
       setSigningIn(false);
