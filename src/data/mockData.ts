@@ -15,8 +15,8 @@ const getDateOffset = (hoursOffset: number): string => {
 export const initialUsers: UserProfile[] = [
   {
     id: "user-admin",
-    name: "Yared Abegaz (Admin & Shop Owner)",
-    email: "yared.abegaz@gmail.com",
+    name: "YONIMobile Admin",
+    email: "admin@yonimobile.com",
     phone: "+251911234567",
     role: UserRole.ADMIN,
     location: {

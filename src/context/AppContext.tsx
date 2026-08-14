@@ -260,7 +260,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
 
       if (fbUser) {
-        const isAdminUser = fbUser.email === "yared.abegaz@gmail.com";
         const userDocRef = doc(db, "users", fbUser.uid);
         let userProfile: UserProfile;
 
@@ -268,16 +267,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const userSnap = await getDoc(userDocRef);
           if (userSnap.exists()) {
             userProfile = userSnap.data() as UserProfile;
-            if (isAdminUser) {
-              userProfile.role = UserRole.ADMIN;
-            }
           } else {
             userProfile = {
               id: fbUser.uid,
               name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : "EthioPhone Buyer"),
               email: fbUser.email || "",
               phone: fbUser.phoneNumber || "",
-              role: isAdminUser ? UserRole.ADMIN : UserRole.BUYER,
+              role: UserRole.BUYER,
               location: {
                 region: "Addis Ababa",
                 city: "Addis Ababa",
@@ -287,7 +283,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               photoUrl: fbUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
               rating: 5.0,
               reviewCount: 0,
-              isVerifiedSeller: isAdminUser,
+              isVerifiedSeller: false,
               joinedDate: new Date().toISOString()
             };
 
@@ -300,7 +296,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : "EthioPhone Buyer"),
             email: fbUser.email || "",
             phone: fbUser.phoneNumber || "",
-            role: isAdminUser ? UserRole.ADMIN : UserRole.BUYER,
+            role: UserRole.BUYER,
             location: {
               region: "Addis Ababa",
               city: "Addis Ababa",
@@ -310,7 +306,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             photoUrl: fbUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
             rating: 5.0,
             reviewCount: 0,
-            isVerifiedSeller: isAdminUser,
+            isVerifiedSeller: false,
             joinedDate: new Date().toISOString()
           };
         }
@@ -362,7 +358,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }, () => {});
 
         // Subscribe to reports (admin sees all, regular user sees own)
-        const reportsQuery = isAdminUser
+        const reportsQuery = userProfile.role === UserRole.ADMIN
           ? collection(db, "reports")
           : query(collection(db, "reports"), where("reporterId", "==", fbUser.uid));
         const unsubReports = onSnapshot(reportsQuery, (snapshot) => {
