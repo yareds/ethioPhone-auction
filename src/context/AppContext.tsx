@@ -9,7 +9,6 @@ import { initialUsers, initialShops, initialListings, initialBids, initialMessag
 import { 
   db, 
   auth, 
-  googleProvider, 
   handleFirestoreError, 
   OperationType, 
   testFirestoreConnection 
@@ -29,8 +28,6 @@ import {
   where
 } from "firebase/firestore";
 import { 
-  signInWithPopup, 
-  linkWithPopup,
   signOut as firebaseSignOut, 
   onAuthStateChanged, 
   User as FirebaseUser 
@@ -54,6 +51,19 @@ export const guestUser: UserProfile = {
   joinedDate: new Date().toISOString()
 };
 
+export const ADMIN_EMAILS = [
+  "admin@ethiophone.com",
+  "yared.abegaz@gmail.com",
+  "admin@yonimobile.com"
+];
+
+export const checkIsAdmin = (email?: string | null, storedRole?: UserRole): boolean => {
+  if (storedRole === UserRole.ADMIN) return true;
+  if (!email) return false;
+  const normalized = email.trim().toLowerCase();
+  return ADMIN_EMAILS.includes(normalized) || normalized.startsWith("admin@");
+};
+
 interface AppContextType {
   currentUser: UserProfile;
   users: UserProfile[];
@@ -66,12 +76,8 @@ interface AppContextType {
   watchlist: string[]; // Listing IDs
 
   // Auth Operations
-  switchUser: (userId: string) => void;
   signOut: () => void;
-  signInWithGoogle: () => Promise<void>;
-  linkGoogleAccount: () => Promise<{ success: boolean; error?: string }>;
   isPhoneSignedIn: boolean;
-  isGoogleLinked: boolean;
   signupUser: (userData: {
     name: string;
     email: string;
@@ -267,13 +273,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const userSnap = await getDoc(userDocRef);
           if (userSnap.exists()) {
             userProfile = userSnap.data() as UserProfile;
+            const isAdmin = checkIsAdmin(fbUser.email, userProfile.role);
+            if (isAdmin && userProfile.role !== UserRole.ADMIN) {
+              userProfile.role = UserRole.ADMIN;
+              userProfile.isVerifiedSeller = true;
+              setDoc(userDocRef, { role: UserRole.ADMIN, isVerifiedSeller: true }, { merge: true }).catch((e) =>
+                console.warn("Could not set admin role in Firestore:", e)
+              );
+            }
           } else {
+            const isAdmin = checkIsAdmin(fbUser.email);
             userProfile = {
               id: fbUser.uid,
-              name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : "EthioPhone Buyer"),
+              name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : (isAdmin ? "EthioPhone Admin" : "EthioPhone User")),
               email: fbUser.email || "",
               phone: fbUser.phoneNumber || "",
-              role: UserRole.BUYER,
+              role: isAdmin ? UserRole.ADMIN : UserRole.BUYER,
               location: {
                 region: "Addis Ababa",
                 city: "Addis Ababa",
@@ -283,7 +298,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
               photoUrl: fbUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
               rating: 5.0,
               reviewCount: 0,
-              isVerifiedSeller: false,
+              isVerifiedSeller: isAdmin,
               joinedDate: new Date().toISOString()
             };
 
@@ -291,12 +306,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
           }
         } catch (err) {
           handleFirestoreError(err, OperationType.WRITE, `users/${fbUser.uid}`);
+          const isAdmin = checkIsAdmin(fbUser.email);
           userProfile = {
             id: fbUser.uid,
-            name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : "EthioPhone Buyer"),
+            name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : (isAdmin ? "EthioPhone Admin" : "EthioPhone User")),
             email: fbUser.email || "",
             phone: fbUser.phoneNumber || "",
-            role: UserRole.BUYER,
+            role: isAdmin ? UserRole.ADMIN : UserRole.BUYER,
             location: {
               region: "Addis Ababa",
               city: "Addis Ababa",
@@ -306,7 +322,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             photoUrl: fbUser.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
             rating: 5.0,
             reviewCount: 0,
-            isVerifiedSeller: false,
+            isVerifiedSeller: isAdmin,
             joinedDate: new Date().toISOString()
           };
         }
@@ -484,72 +500,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const toggleTheme = () => setIsDarkMode((prev) => !prev);
 
   // Authentication Operations
-  const switchUser = (userId: string) => {
-    const foundUser = users.find((u) => u.id === userId);
-    if (foundUser) {
-      setCurrentUser(foundUser);
-    }
-  };
-
-  const signInWithGoogle = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Google Sign-In failed:", error);
-      throw error;
-    }
-  };
-
-  const linkGoogleAccount = async (): Promise<{ success: boolean; error?: string }> => {
-    if (!auth.currentUser) {
-      return { success: false, error: "No active authenticated session." };
-    }
-    try {
-      const result = await linkWithPopup(auth.currentUser, googleProvider);
-      const updatedUser = result.user;
-
-      const updatedFields: Partial<UserProfile> = {};
-      if (updatedUser.email && !currentUser.email) {
-        updatedFields.email = updatedUser.email;
-      }
-      if (updatedUser.photoURL && !currentUser.photoUrl) {
-        updatedFields.photoUrl = updatedUser.photoURL;
-      }
-      if (updatedUser.displayName && (!currentUser.name || currentUser.name.startsWith("User"))) {
-        updatedFields.name = updatedUser.displayName;
-      }
-
-      if (Object.keys(updatedFields).length > 0) {
-        setCurrentUser((prev) => ({ ...prev, ...updatedFields }));
-        try {
-          await updateDoc(doc(db, "users", updatedUser.uid), updatedFields);
-        } catch (e) {
-          console.warn("Could not update Firestore user doc after link:", e);
-        }
-      }
-
-      return { success: true };
-    } catch (error: any) {
-      console.error("Error linking Google account:", error);
-      let message = error.message || "Failed to link Google account.";
-      if (
-        error.code === "auth/credential-already-in-use" ||
-        error.code === "auth/email-already-in-use" ||
-        error.code === "auth/account-exists-with-different-credential"
-      ) {
-        message = "This Google account is already linked to a different user account.";
-      }
-      return { success: false, error: message };
-    }
-  };
-
   const isPhoneSignedIn = Boolean(
     auth.currentUser?.providerData.some((p) => p.providerId === "phone") ||
-      (currentUser.id !== "guest" && currentUser.phone && !auth.currentUser?.providerData.some((p) => p.providerId === "google.com"))
-  );
-
-  const isGoogleLinked = Boolean(
-    auth.currentUser?.providerData.some((p) => p.providerId === "google.com")
+      (currentUser.id !== "guest" && currentUser.phone)
   );
 
   const signOut = async () => {
@@ -575,17 +528,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     role: UserRole;
   }) => {
     const newUserId = auth.currentUser ? auth.currentUser.uid : `user-${Date.now()}`;
+    const isAdmin = checkIsAdmin(userData.email, userData.role);
+    const assignedRole = isAdmin ? UserRole.ADMIN : (userData.role || UserRole.BUYER);
     const newUser: UserProfile = {
       id: newUserId,
       name: userData.name,
       email: userData.email,
       phone: userData.phone,
-      role: userData.role,
+      role: assignedRole,
       location: userData.location,
       photoUrl: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80`,
       rating: 5.0,
       reviewCount: 0,
-      isVerifiedSeller: userData.role === UserRole.SHOP_OWNER,
+      isVerifiedSeller: isAdmin || userData.role === UserRole.SHOP_OWNER,
       joinedDate: new Date().toISOString()
     };
 
@@ -1291,12 +1246,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         reports,
         notifications,
         watchlist,
-        switchUser,
         signOut,
-        signInWithGoogle,
-        linkGoogleAccount,
         isPhoneSignedIn,
-        isGoogleLinked,
         signupUser,
         updateProfile,
         registerShop,

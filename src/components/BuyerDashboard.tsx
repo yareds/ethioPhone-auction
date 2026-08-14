@@ -17,35 +17,12 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
     getChatPartners,
     getMessagesForChat,
     sendMessage,
-    users,
-    isPhoneSignedIn,
-    isGoogleLinked,
-    linkGoogleAccount
+    users
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<"bids" | "watchlist" | "won" | "chat" | "settings">("bids");
   const [selectedChatPartnerId, setSelectedChatPartnerId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
-  const [linkLoading, setLinkLoading] = useState(false);
-  const [linkStatus, setLinkStatus] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  const handleLinkGoogle = async () => {
-    setLinkLoading(true);
-    setLinkStatus(null);
-    const res = await linkGoogleAccount();
-    setLinkLoading(false);
-    if (res.success) {
-      setLinkStatus({
-        type: "success",
-        message: "Google account successfully linked as a backup sign-in method!"
-      });
-    } else {
-      setLinkStatus({
-        type: "error",
-        message: res.error || "Failed to link Google account."
-      });
-    }
-  };
 
   // Get active user bids (unique listings the user has bid on)
   const userBiddedListingIds = Array.from(
@@ -193,11 +170,6 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
               <span className="flex items-center gap-2">
                 <Settings className="h-4.5 w-4.5" /> Account Settings
               </span>
-              {isPhoneSignedIn && !isGoogleLinked && (
-                <span className="bg-[var(--color-gold)]/20 text-[var(--color-gold-soft)] dark:text-[var(--color-gold)] text-[9px] px-2 py-0.5 rounded-full font-bold">
-                  Backup
-                </span>
-              )}
             </button>
           </div>
         </div>
@@ -562,64 +534,6 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
                     <span className="font-medium">{currentUser.location?.subCity || "Bole"}, {currentUser.location?.city || "Addis Ababa"}</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Sign-in Security & Backup Options */}
-              <div className="p-5 rounded-2xl border border-[var(--color-paper-soft)] bg-[var(--color-paper)] space-y-4">
-                <div className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-[var(--color-gold)]" />
-                  <h4 className="font-bold text-sm text-[var(--color-ink)] dark:text-white">Sign-In Security & Backup</h4>
-                </div>
-
-                {isPhoneSignedIn && !isGoogleLinked ? (
-                  <div className="p-4 rounded-xl border border-[var(--color-gold)]/40 bg-[var(--color-gold)]/10 space-y-3">
-                    <div>
-                      <h5 className="font-bold text-xs text-[var(--color-ink)] dark:text-white flex items-center gap-2">
-                        Add Google as backup sign-in
-                      </h5>
-                      <p className="text-xs text-[var(--color-ink-soft)] mt-1 leading-relaxed">
-                        Attach your Google account as a second sign-in method to this SAME buyer profile. You will be able to log in with either phone OTP or Google.
-                      </p>
-                    </div>
-
-                    {linkStatus && (
-                      <div className={`p-3 rounded-xl text-xs font-semibold ${
-                        linkStatus.type === "success" 
-                          ? "bg-[var(--color-verified-soft)] text-[var(--color-verified)] border border-[var(--color-verified)]/30" 
-                          : "bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/30"
-                      }`}>
-                        {linkStatus.message}
-                      </div>
-                    )}
-
-                    <button
-                      onClick={handleLinkGoogle}
-                      disabled={linkLoading}
-                      className="flex items-center gap-2.5 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-xl py-2.5 px-4 text-xs font-bold transition-all shadow-sm hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
-                      id="buyer-dashboard-link-google-btn"
-                    >
-                      <svg className="h-4 w-4" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                        <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                      </svg>
-                      <span>{linkLoading ? "Linking Account..." : "Add Google Backup Sign-In"}</span>
-                    </button>
-                  </div>
-                ) : isGoogleLinked ? (
-                  <div className="p-4 rounded-xl bg-[var(--color-verified-soft)]/40 border border-[var(--color-verified)]/30 text-[var(--color-verified)] flex items-center gap-2.5">
-                    <Shield className="h-5 w-5 text-[var(--color-verified)]" />
-                    <div>
-                      <p className="font-bold text-xs">Google Backup Sign-In Active</p>
-                      <p className="text-[11px] opacity-80">Your Google account is linked to this profile. You can log in using either Phone or Google.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-xs text-[var(--color-ink-soft)]/70">
-                    Your account is currently signed in via Google.
-                  </p>
-                )}
               </div>
             </div>
           )}

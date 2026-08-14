@@ -10,6 +10,7 @@ import { Shield, Users, ShoppingBag, ShieldAlert, Check, Ban, X, Sparkles, Trend
 
 export default function AdminPanel() {
   const {
+    currentUser,
     users,
     shops,
     listings,
@@ -21,6 +22,20 @@ export default function AdminPanel() {
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<"stats" | "users" | "shops" | "reports">("stats");
+
+  if (currentUser.role !== UserRole.ADMIN) {
+    return (
+      <div className="max-w-md mx-auto px-4 py-20 text-center animate-in fade-in duration-200">
+        <div className="h-16 w-16 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-3xl flex items-center justify-center mx-auto mb-4 border border-[var(--color-danger)]/20">
+          <ShieldAlert className="h-8 w-8" />
+        </div>
+        <h2 className="text-xl font-bold text-[var(--color-ink)] dark:text-white">Admin Clearance Required</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
+          This portal is restricted to authenticated platform administrators. Please sign in with an authorized admin account.
+        </p>
+      </div>
+    );
+  }
 
   // High level metrics
   const activeUsersCount = users.filter((u) => !u.isBlocked).length;
