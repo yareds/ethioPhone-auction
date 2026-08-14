@@ -6,6 +6,7 @@
 import React, { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { UserRole } from "../types";
+import { TRIAL_MODE } from "../config";
 import {
   Smartphone,
   Shield,
@@ -16,7 +17,8 @@ import {
   CheckCircle2,
   Info,
   X,
-  Sparkles
+  Sparkles,
+  Clock
 } from "lucide-react";
 
 interface SignupModalProps {
@@ -45,6 +47,48 @@ export default function SignupModal({
   const [errorMsg, setErrorMsg] = useState("");
 
   if (!isOpen) return null;
+
+  if (TRIAL_MODE) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="relative w-full max-w-md bg-[var(--color-paper)] dark:bg-[var(--color-ink)] border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-3xl p-6 sm:p-8 shadow-2xl text-center">
+          
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-5 right-5 p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)] transition-all"
+            id="trial-modal-close-btn"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          <div className="h-16 w-16 bg-[var(--color-gold)]/15 text-[var(--color-gold)] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[var(--color-gold)]/30 shadow-sm">
+            <Clock className="h-8 w-8" />
+          </div>
+
+          <h3 className="font-display font-black text-xl text-[var(--color-ink)] dark:text-white">
+            Bidding Opens Soon
+          </h3>
+
+          <p className="text-sm font-bold text-[var(--color-gold)] mt-2">
+            Bidding opens soon — check back shortly
+          </p>
+
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2.5 leading-relaxed font-medium">
+            YONIMobile Auction is currently in a private trial mode. Public buyer registration and live bidding will be enabled shortly.
+          </p>
+
+          <button
+            onClick={onClose}
+            className="mt-6 w-full bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] font-extrabold py-3.5 rounded-xl text-xs uppercase tracking-wider transition-all duration-200 shadow-md hover:scale-[1.01] active:scale-[0.99]"
+            id="trial-modal-confirm-btn"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleGoogleSignIn = async () => {
     setErrorMsg("");
