@@ -6,34 +6,34 @@
   --font-display: "Fraunces", "Playfair Display", serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
-  --color-ink: #12100e;
-  --color-ink-soft: #1c1815;
-  --color-paper: #fbf8f3;
-  --color-paper-soft: #f3ede2;
-  --color-gold: #b8873a;
-  --color-gold-soft: #e8c07f;
-  --color-clay: #8c4a38;
-  --color-verified: #1f6f63;
-  --color-verified-soft: #d9ebe6;
-  --color-danger: #b23a32;
+  --color-ink: #0F172A;
+  --color-ink-soft: #212529;
+  --color-paper: #FFFFFF;
+  --color-paper-soft: #F8F9FA;
+  --color-gold: #0066CC;
+  --color-gold-soft: #E0EDFF;
+  --color-clay: #FF6600;
+  --color-verified: #0066CC;
+  --color-verified-soft: #E0EDFF;
+  --color-danger: #DC2626;
 }
 
 :root {
-  --color-ink: #12100e;
-  --color-ink-soft: #1c1815;
-  --color-paper: #fbf8f3;
-  --color-paper-soft: #f3ede2;
-  --color-gold: #b8873a;
-  --color-gold-soft: #e8c07f;
-  --color-clay: #8c4a38;
-  --color-verified: #1f6f63;
-  --color-verified-soft: #d9ebe6;
-  --color-danger: #b23a32;
+  --color-ink: #0F172A;
+  --color-ink-soft: #212529;
+  --color-paper: #FFFFFF;
+  --color-paper-soft: #F8F9FA;
+  --color-gold: #0066CC;
+  --color-gold-soft: #E0EDFF;
+  --color-clay: #FF6600;
+  --color-verified: #0066CC;
+  --color-verified-soft: #E0EDFF;
+  --color-danger: #DC2626;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-paper);
+  background-color: var(--color-paper-soft);
   color: var(--color-ink);
 }
 

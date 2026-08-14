@@ -39,7 +39,7 @@ export default function AdminPanel() {
             <Shield className="h-8 w-8 text-[var(--color-gold-soft)]" />
           </div>
           <div>
-            <h1 className="font-display font-semibold text-2xl tracking-tight text-[var(--color-paper)]">YONIPhone Admin Workspace</h1>
+            <h1 className="font-display font-semibold text-2xl tracking-tight text-[var(--color-paper)]">YONIMobile Admin Workspace</h1>
             <p className="text-xs text-[var(--color-paper)]/70 mt-1">Platform Moderator clearance. Review and approve sellers, inspect reported IMEI clones, and monitor server operations.</p>
           </div>
         </div>

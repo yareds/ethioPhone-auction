@@ -439,7 +439,7 @@ export default function SellerDashboard({ onViewListing }: { onViewListing: (lis
                 </div>
                 <h3 className="font-display font-semibold text-lg text-[var(--color-ink)]">Admin Privileges Required</h3>
                 <p className="text-xs text-[var(--color-ink-soft)]/70 leading-relaxed">
-                  Only the <strong>YONIPhone Admin</strong> has authorized privileges to upload listings, manage phone images, or edit bidding details.
+                  Only the <strong>YONIMobile Admin</strong> has authorized privileges to upload listings, manage phone images, or edit bidding details.
                 </p>
               </div>
             ) : (
@@ -655,21 +655,7 @@ export default function SellerDashboard({ onViewListing }: { onViewListing: (lis
                 <h4 className="font-display font-semibold text-xs uppercase text-[var(--color-ink-soft)] tracking-wider flex items-center gap-1.5">
                   <MapPin className="h-4 w-4 text-[var(--color-gold)]" /> Inspection & Handover Location (In-Person Handshake Only)
                 </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--color-ink-soft)] uppercase mb-1">Region</label>
-                    <select
-                      value={region}
-                      onChange={(e) => setRegion(e.target.value)}
-                      className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] text-[var(--color-ink)] rounded-xl p-3 focus:outline-none"
-                    >
-                      <option value="Addis Ababa">Addis Ababa</option>
-                      <option value="Oromia">Oromia</option>
-                      <option value="Amhara">Amhara</option>
-                      <option value="Sidama">Sidama</option>
-                    </select>
-                  </div>
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[var(--color-ink-soft)] uppercase mb-1">City</label>
                     <input
@@ -828,7 +814,7 @@ export default function SellerDashboard({ onViewListing }: { onViewListing: (lis
                   <div className="text-xs text-[var(--color-ink-soft)] space-y-1.5 bg-[var(--color-paper-soft)]/50 p-4 rounded-xl border border-[var(--color-paper-soft)]">
                     <p><strong>Bole Office:</strong> {userShop.location.address}</p>
                     <p><strong>Store Contact:</strong> {userShop.phone}</p>
-                    <p className="pt-2 text-[var(--color-ink-soft)]/60">Note: To update logo banners, storefront designs, or verified license credentials, contact YONIPhone System Administrator.</p>
+                    <p className="pt-2 text-[var(--color-ink-soft)]/60">Note: To update logo banners, storefront designs, or verified license credentials, contact YONIMobile System Administrator.</p>
                   </div>
                 </div>
               ) : (

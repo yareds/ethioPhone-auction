@@ -39,7 +39,7 @@ export const PhoneLetterO: React.FC<PhoneLetterOProps> = ({
       <defs>
         <linearGradient id="phoneBodyGold" x1="0" y1="0" x2="20" y2="26" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="var(--color-gold)" />
-          <stop offset="50%" stopColor="#d9a04e" />
+          <stop offset="50%" stopColor="#3385FF" />
           <stop offset="100%" stopColor="var(--color-gold)" />
         </linearGradient>
       </defs>
@@ -170,9 +170,9 @@ interface BrandLogoProps {
 }
 
 /**
- * Complete YONIPhone Brand Logo Component.
- * Features an elegant typographic wordmark ("YONIPhone Auction") with the sleek
- * smartphone silhouette seamlessly integrated into the letter "O" in "Phone".
+ * Complete YONIMobile Brand Logo Component.
+ * Features an elegant typographic wordmark ("YONIMobile Auction") with the sleek
+ * smartphone silhouette seamlessly integrated into the letter "O" in "Mobile".
  */
 export const BrandLogo: React.FC<BrandLogoProps> = ({
   size = "md",
@@ -198,7 +198,7 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
       onClick={onClick}
       id="brand-logo-container"
     >
-      {/* Wordmark: YONIPhone */}
+      {/* Wordmark: YONIMobile */}
       <div className="flex items-center leading-none">
         <span
           className={`font-sans-logo font-black tracking-tight ${textSizeClasses[size]} text-[var(--color-ink)] dark:text-[var(--color-paper)] flex items-center transition-colors group-hover:text-[var(--color-gold)]`}
@@ -208,14 +208,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
             YONI
           </span>
           
-          {/* Ph + Smartphone O + ne */}
+          {/* M + Smartphone O + bile */}
           <span className="font-extrabold tracking-tight flex items-center">
-            <span>Ph</span>
+            <span>M</span>
             <PhoneLetterO 
               colorClass="text-[var(--color-gold)]" 
               className="h-[0.88em] w-auto inline-block align-middle mx-[0.02em] transition-transform duration-300 group-hover:scale-105" 
             />
-            <span>ne</span>
+            <span>bile</span>
           </span>
         </span>
 

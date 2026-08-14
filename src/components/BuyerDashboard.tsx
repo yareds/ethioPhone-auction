@@ -380,7 +380,7 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
                                 <p className="font-semibold text-[var(--color-ink)]">Shop Pickup Address:</p>
                                 <p className="mt-0.5">{listing.sellerLocation.address}</p>
                                 <p className="text-[var(--color-ink-soft)]/60 font-semibold uppercase text-[9px] mt-0.5">
-                                  {listing.sellerLocation.region} • {listing.sellerLocation.city} • {listing.sellerLocation.subCity}
+                                  {listing.sellerLocation.city} • {listing.sellerLocation.subCity}
                                 </p>
                               </div>
                             </div>

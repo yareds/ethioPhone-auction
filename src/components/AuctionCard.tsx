@@ -133,7 +133,7 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
       {/* Featured / Live Ribbon */}
       <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
         {listing.isFeatured && (
-          <span className="bg-[var(--color-gold)] text-[var(--color-ink)] text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
+          <span className="bg-[var(--color-gold)] text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 uppercase tracking-wider">
             ⭐ Featured
           </span>
         )}
@@ -251,7 +251,7 @@ export default function AuctionCard({ listing, onViewDetails }: { listing: Phone
             onClick={() => onViewDetails(listing)}
             className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
               isLive
-                ? "bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] shadow-md"
+                ? "bg-[var(--color-gold)] hover:brightness-110 text-white shadow-md"
                 : isUpcoming
                 ? "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-gray-900 dark:text-gray-100"
                 : "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)]/40 text-gray-400 cursor-not-allowed border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]"

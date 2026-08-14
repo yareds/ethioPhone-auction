@@ -149,9 +149,9 @@ export default function HeroSection() {
                       <span className="flex items-center font-sans-logo">
                         <span className="font-serif-logo italic font-extrabold text-[var(--color-gold)] mr-[0.03em]">YONI</span>
                         <span className="font-extrabold flex items-center">
-                          <span>Ph</span>
+                          <span>M</span>
                           <PhoneLetterO colorClass="text-[var(--color-gold)]" className="h-[0.88em] w-auto inline-block align-middle mx-[0.02em]" />
-                          <span>ne</span>
+                          <span>bile</span>
                         </span>
                       </span>
                       <span className="text-[var(--color-gold-soft)] font-bold">100% Verified</span>

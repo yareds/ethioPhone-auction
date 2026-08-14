@@ -125,8 +125,8 @@ function MainAppContent() {
         {activeTab === "home" && (
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 animate-in fade-in duration-200">
             
-            {/* Hero Section Banner */}
-            <HeroSection />
+            {/* Hero Section Banner - Only displayed when "All" category is selected */}
+            {brandFilter === "All" && <HeroSection />}
 
             {/* Split view: Core listings alongside localized guidelines */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -145,14 +145,16 @@ function MainAppContent() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={simulateTimeTick}
-                    className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] px-3.5 py-1.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-95"
-                    title="Simulate 1 Hour Time Tick to update live countdowns and rival bids"
-                    id="trigger-sim-tick"
-                  >
-                    <RefreshCw className="h-3 w-3 animate-spin-slow" /> Tick Simulation
-                  </button>
+                  {currentUser?.role === "admin" && (
+                    <button
+                      onClick={simulateTimeTick}
+                      className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] px-3.5 py-1.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+                      title="Simulate 1 Hour Time Tick to update live countdowns and rival bids (Admin Only)"
+                      id="trigger-sim-tick"
+                    >
+                      <RefreshCw className="h-3 w-3 animate-spin-slow" /> Tick Simulation (Admin)
+                    </button>
+                  )}
                 </div>
 
                 {/* Grid layout */}

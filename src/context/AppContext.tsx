@@ -166,7 +166,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Database core state initialized with mockData defaults
   const [users, setUsers] = useState<UserProfile[]>(initialUsers);
-  const [currentUser, setCurrentUser] = useState<UserProfile>(initialUsers[0]);
+  const [currentUser, setCurrentUser] = useState<UserProfile>(guestUser);
   const [shops, setShops] = useState<ShopProfile[]>(initialShops);
   const [listings, setListings] = useState<PhoneListing[]>(initialListings);
   const [bids, setBids] = useState<Bid[]>(initialBids);
@@ -176,7 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     {
       id: "notif-welcome",
       userId: "user-admin",
-      title: "Welcome to YONIPhone Auction!",
+      title: "Welcome to YONIMobile Auction!",
       message: "Your primary auction hub. Connected to Firebase Firestore backend.",
       type: "general",
       isRead: false,
@@ -381,6 +381,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           unsubReports();
         };
       } else {
+        setCurrentUser(guestUser);
         setUsers(initialUsers);
         setMessages(initialMessages);
         setReports(initialReports);
@@ -621,8 +622,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     triggerNotification(
       newUserId,
-      "🎉 Welcome to YONIPhone Auction!",
-      `Hello ${userData.name}, you have successfully signed up on YONIPhone.`,
+      "🎉 Welcome to YONIMobile Auction!",
+      `Hello ${userData.name}, you have successfully signed up on YONIMobile.`,
       "general"
     );
 
@@ -672,7 +673,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (currentUser.role !== UserRole.ADMIN) {
       return {
         success: false,
-        error: "🚫 Unauthorized! Only the YONIPhone Admin has authorization to list phones."
+        error: "🚫 Unauthorized! Only the YONIMobile Admin has authorization to list phones."
       };
     }
 

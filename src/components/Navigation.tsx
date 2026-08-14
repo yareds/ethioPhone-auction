@@ -86,7 +86,6 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
   const unreadNotifs = notifications.filter((n) => n.userId === currentUser.id && !n.isRead);
 
   const brands = ["All", "Apple", "Samsung", "Google", "Xiaomi"];
-  const regions = ["All", "Addis Ababa", "Oromia", "Amhara", "Sidama", "Tigray"];
   const statuses = [
     { value: "all", label: "All Auctions" },
     { value: "live", label: "Live Now" },
@@ -354,7 +353,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
 
                       <div className="p-2 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/20 text-center">
                         <p className="text-[10px] text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40 font-medium">
-                          YONIPhone Auction v1.0
+                          YONIMobile Auction v1.0
                         </p>
                       </div>
                     </div>
@@ -407,23 +406,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               ))}
             </div>
 
-            {/* Region Filter & Status Filter */}
+            {/* Status Filter */}
             <div className="flex items-center gap-2">
-              
-              {/* Region Selector */}
-              <select
-                value={selectedRegion}
-                onChange={(e) => setSelectedRegion(e.target.value)}
-                className="text-xs font-semibold bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] rounded-lg px-2.5 py-1 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)]"
-              >
-                <option value="">All Regions</option>
-                {regions.slice(1).map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-
               {/* Status Tabs */}
               <div className="flex border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-lg overflow-hidden p-0.5 bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)]">
                 {statuses.map((s) => (
