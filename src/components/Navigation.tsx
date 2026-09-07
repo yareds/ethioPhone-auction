@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { useApp } from "../context/AppContext";
 import { UserRole } from "../types";
 import { TRIAL_MODE } from "../config";
-import { Bell, Search, Shield, Sun, Moon, Sparkles, LogIn, LogOut, ChevronDown, Check, Trash2, Smartphone, X, User, Mail, Phone, UserPlus, MapPin } from "lucide-react";
+import { Bell, Search, Shield, Sun, Moon, Sparkles, LogIn, LogOut, ChevronDown, Check, Trash2, Smartphone, X, User, Mail, Phone, UserPlus, MapPin, Gavel, Store, ShoppingBag } from "lucide-react";
 import { BrandLogo, PhoneLetterO } from "./Logo";
 import AdminLoginModal from "./AdminLoginModal";
 
@@ -29,12 +29,15 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
     setSelectedStatus,
     isDarkMode,
     toggleTheme,
-    isPhoneSignedIn
+    isPhoneSignedIn,
+    showAdminLoginModal,
+    setShowAdminLoginModal
   } = useApp();
 
-  const [showAdminLoginModal, setShowAdminLoginModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+
+  const isAdmin = currentUser.role === UserRole.ADMIN && currentUser.id !== "guest";
 
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -101,7 +104,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
           {/* Action Tabs & Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
             
-            <nav className="flex items-center gap-1 text-sm font-medium mr-1 sm:mr-3">
+            <nav className="hidden md:flex items-center gap-1 text-sm font-medium mr-1 sm:mr-3">
               <button
                 onClick={() => setActiveTab("home")}
                 className={`px-3 py-2 rounded-lg transition-all ${
@@ -128,7 +131,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 </button>
               )}
 
-              {currentUser.role === UserRole.ADMIN && (
+              {isAdmin && (
                 <button
                   onClick={() => setActiveTab("seller")}
                   className={`px-3 py-2 rounded-lg transition-all ${
@@ -142,7 +145,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 </button>
               )}
 
-              {currentUser.role === UserRole.ADMIN && (
+              {isAdmin && (
                 <button
                   onClick={() => setActiveTab("admin")}
                   className={`px-3 py-2 rounded-lg text-[var(--color-danger)] transition-all flex items-center gap-1 ${
@@ -184,7 +187,7 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               </button>
 
               {showNotifDropdown && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-sm sm:w-96 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                   <div className="p-4 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] flex items-center justify-between">
                     <span className="font-bold text-sm text-[var(--color-ink)] dark:text-[var(--color-paper)] flex items-center gap-1.5">
                       Notifications
@@ -247,12 +250,12 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
               {currentUser.id === "guest" ? (
                 <button
                   onClick={() => setShowAdminLoginModal(true)}
-                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] hover:bg-[var(--color-paper-soft)]/80 text-[var(--color-ink)] dark:text-[var(--color-paper)] font-bold text-xs transition-all border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] cursor-pointer"
-                  id="admin-sign-in-btn"
-                  title="Admin Portal Sign In"
+                  className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] hover:bg-[var(--color-paper-soft)]/80 text-[var(--color-ink)] dark:text-[var(--color-paper)] font-bold text-xs transition-all border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] cursor-pointer"
+                  id="user-sign-in-btn"
+                  title="Sign In"
                 >
-                  <Shield className="h-3.5 w-3.5 text-[var(--color-gold)]" />
-                  <span>Admin</span>
+                  <LogIn className="h-3.5 w-3.5 text-[var(--color-gold)]" />
+                  <span>Sign In</span>
                 </button>
               ) : (
                 <>
@@ -273,13 +276,17 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                   </button>
 
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                    <div className="absolute right-0 mt-2 w-[calc(100vw-24px)] max-w-xs sm:w-64 rounded-2xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper)] dark:bg-[var(--color-ink)] shadow-xl ring-1 ring-black/5 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                       <div className="p-4 bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/50 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
                         <p className="text-xs font-medium text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60">Signed in as</p>
                         <p className="font-bold text-sm text-[var(--color-ink)] dark:text-[var(--color-paper)] truncate">{currentUser.name}</p>
                         <div className="mt-1.5 flex items-center gap-1.5">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[var(--color-gold-soft)]/20 text-[var(--color-gold)] uppercase tracking-wider border border-[var(--color-gold)]/30">
-                            {currentUser.role.replace("_", " ")}
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border ${
+                            isAdmin
+                              ? "bg-[var(--color-gold-soft)]/20 text-[var(--color-gold)] border-[var(--color-gold)]/30"
+                              : "bg-[var(--color-paper-soft)] text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 border-[var(--color-paper-soft)]"
+                          }`}>
+                            {isAdmin ? "ADMIN" : "BUYER / BIDDER"}
                           </span>
                           {currentUser.isVerifiedSeller && (
                             <span className="seal">
@@ -288,6 +295,18 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                           )}
                         </div>
                       </div>
+
+                      {isAdmin && (
+                        <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
+                          <button
+                            onClick={() => { setActiveTab("admin"); setShowProfileDropdown(false); }}
+                            className="w-full bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                            id="profile-admin-workspace-btn"
+                          >
+                            <Shield className="h-3.5 w-3.5" /> Admin Workspace
+                          </button>
+                        </div>
+                      )}
 
                       <div className="p-2 border-b border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-danger)]/5">
                         <button
@@ -313,8 +332,8 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
         </div>
 
         {/* Mobile Search Bar */}
-        <div className="md:hidden pb-4 pt-1">
-          <div className="relative">
+        <div className="md:hidden pb-3 pt-1">
+          <div className="relative flex items-center">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-[var(--color-ink)]/40 dark:text-[var(--color-paper)]/40" />
             </div>
@@ -326,23 +345,33 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
                 setSearchQuery(e.target.value);
                 if (activeTab !== "home") setActiveTab("home");
               }}
-              className="block w-full pl-10 pr-3 py-2 border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-xl bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] placeholder-[var(--color-ink)]/40 dark:placeholder-[var(--color-paper)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] focus:border-[var(--color-gold)] text-xs transition-all"
+              className="block w-full pl-10 pr-9 py-2 border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-xl bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-[var(--color-paper)] placeholder-[var(--color-ink)]/40 dark:placeholder-[var(--color-paper)]/40 focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] focus:border-[var(--color-gold)] text-xs transition-all"
               id="search-input-field-mobile"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                aria-label="Clear search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
 
         {/* Sub-header Filter bar (Only on Home screen) */}
         {activeTab === "home" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] py-3 mt-1 overflow-x-auto select-none no-scrollbar">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] py-2.5 mt-1 overflow-x-auto select-none no-scrollbar">
             
             {/* Brand filter pills */}
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full">
               {brands.map((b) => (
                 <button
                   key={b}
                   onClick={() => setSelectedBrand(b === "All" ? "" : b)}
-                  className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
+                  className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                     (b === "All" && !selectedBrand) || selectedBrand === b
                       ? "bg-[var(--color-gold)] text-[var(--color-paper)] shadow-sm"
                       : "bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] text-[var(--color-ink)]/70 dark:text-[var(--color-paper)]/70 hover:bg-[var(--color-paper-soft)]/80 dark:hover:bg-[var(--color-ink-soft)]/80"
@@ -354,14 +383,14 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
             </div>
 
             {/* Status Filter */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
               {/* Status Tabs */}
               <div className="flex border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-lg overflow-hidden p-0.5 bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)]">
                 {statuses.map((s) => (
                   <button
                     key={s.value}
                     onClick={() => setSelectedStatus(s.value)}
-                    className={`px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-md transition-all ${
+                    className={`px-2.5 py-1 text-[10px] sm:text-xs font-semibold rounded-md whitespace-nowrap transition-all ${
                       selectedStatus === s.value
                         ? "bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-[var(--color-paper)] shadow-sm"
                         : "text-[var(--color-ink)]/50 dark:text-[var(--color-paper)]/50 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)]"
@@ -378,6 +407,150 @@ export default function Navigation({ activeTab, setActiveTab }: { activeTab: str
         )}
 
       </div>
+
+      {/* Mobile Sticky Bottom Navigation Bar (thumb-friendly, min 44px touch targets) */}
+      <nav
+        aria-label="Mobile navigation"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--color-paper)]/95 dark:bg-[var(--color-ink)]/95 backdrop-blur-xl border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] px-2 py-1 flex items-center justify-around shadow-2xl safe-area-inset-bottom"
+        id="mobile-bottom-nav"
+      >
+        {/* Marketplace */}
+        <button
+          onClick={() => {
+            setActiveTab("home");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl transition-all ${
+            activeTab === "home"
+              ? "text-[var(--color-gold)] font-bold"
+              : "text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)]"
+          }`}
+          id="mobile-nav-marketplace-btn"
+        >
+          <Store className={`h-5 w-5 mb-0.5 ${activeTab === "home" ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
+          <span className="text-[10px] leading-tight">Market</span>
+        </button>
+
+        {/* My Bids */}
+        {currentUser.id !== "guest" ? (
+          <button
+            onClick={() => {
+              setActiveTab("buyer");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl transition-all ${
+              activeTab === "buyer"
+                ? "text-[var(--color-gold)] font-bold"
+                : "text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)]"
+            }`}
+            id="mobile-nav-bids-btn"
+          >
+            <Gavel className={`h-5 w-5 mb-0.5 ${activeTab === "buyer" ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
+            <span className="text-[10px] leading-tight">My Bids</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setActiveTab("home");
+              const el = document.getElementById("search-input-field-mobile");
+              if (el) el.focus();
+            }}
+            className="flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)] transition-all"
+            id="mobile-nav-explore-btn"
+          >
+            <Search className="h-5 w-5 mb-0.5 stroke-[1.75]" />
+            <span className="text-[10px] leading-tight">Search</span>
+          </button>
+        )}
+
+        {/* Sellers (Admin only) */}
+        {isAdmin && (
+          <button
+            onClick={() => {
+              setActiveTab("seller");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl transition-all ${
+              activeTab === "seller"
+                ? "text-[var(--color-gold)] font-bold"
+                : "text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)]"
+            }`}
+            id="mobile-nav-sellers-btn"
+          >
+            <ShoppingBag className={`h-5 w-5 mb-0.5 ${activeTab === "seller" ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
+            <span className="text-[10px] leading-tight">Sellers</span>
+          </button>
+        )}
+
+        {/* Notifications / Alerts */}
+        <button
+          onClick={() => {
+            setShowNotifDropdown((prev) => !prev);
+            setShowProfileDropdown(false);
+          }}
+          className={`relative flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl transition-all ${
+            showNotifDropdown
+              ? "text-[var(--color-gold)] font-bold"
+              : "text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-ink)] dark:hover:text-[var(--color-paper)]"
+          }`}
+          id="mobile-nav-alerts-btn"
+          aria-label="Toggle notifications"
+        >
+          <div className="relative">
+            <Bell className="h-5 w-5 mb-0.5 stroke-[1.75]" />
+            {unreadNotifs.length > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-[var(--color-danger)] text-[8px] font-bold text-white">
+                {unreadNotifs.length}
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] leading-tight">Alerts</span>
+        </button>
+
+        {/* Admin or Profile or Sign In */}
+        {isAdmin ? (
+          <button
+            onClick={() => {
+              setActiveTab("admin");
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl transition-all ${
+              activeTab === "admin"
+                ? "text-[var(--color-danger)] font-bold"
+                : "text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-danger)]"
+            }`}
+            id="mobile-nav-admin-btn"
+          >
+            <Shield className={`h-5 w-5 mb-0.5 ${activeTab === "admin" ? "stroke-[2.5]" : "stroke-[1.75]"}`} />
+            <span className="text-[10px] leading-tight">Admin</span>
+          </button>
+        ) : currentUser.id !== "guest" ? (
+          <button
+            onClick={() => {
+              setShowProfileDropdown((prev) => !prev);
+              setShowNotifDropdown(false);
+            }}
+            className={`flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl transition-all ${
+              showProfileDropdown
+                ? "text-[var(--color-gold)] font-bold"
+                : "text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-gold)]"
+            }`}
+            id="mobile-nav-profile-btn"
+          >
+            <User className="h-5 w-5 mb-0.5 stroke-[1.75]" />
+            <span className="text-[10px] leading-tight">Profile</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setShowAdminLoginModal(true)}
+            className="flex flex-col items-center justify-center min-h-[44px] min-w-[48px] px-2 py-1 rounded-xl text-[var(--color-ink)]/60 dark:text-[var(--color-paper)]/60 hover:text-[var(--color-gold)] transition-all"
+            id="mobile-nav-login-btn"
+          >
+            <LogIn className="h-5 w-5 mb-0.5 stroke-[1.75]" />
+            <span className="text-[10px] leading-tight">Sign In</span>
+          </button>
+        )}
+      </nav>
 
       <AdminLoginModal
         isOpen={showAdminLoginModal}

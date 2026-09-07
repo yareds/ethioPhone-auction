@@ -15,7 +15,7 @@ import AdminPanel from "./components/AdminPanel";
 import HeroSection from "./components/HeroSection";
 import { BrandLogo } from "./components/Logo";
 import { AuctionStatus, PhoneListing } from "./types";
-import { ShieldCheck, Gavel, RefreshCw, AlertTriangle, HelpCircle, ArrowRight } from "lucide-react";
+import { ShieldCheck, Gavel, RefreshCw, AlertTriangle, HelpCircle, ArrowRight, Shield } from "lucide-react";
 
 function MainAppContent() {
   const {
@@ -30,7 +30,8 @@ function MainAppContent() {
     listings,
     currentUser,
     simulateTimeTick,
-    selectedStatus
+    selectedStatus,
+    setShowAdminLoginModal
   } = useApp();
 
   const [selectedListing, setSelectedListing] = useState<PhoneListing | null>(null);
@@ -113,13 +114,13 @@ function MainAppContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-gray-100 transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-gray-100 transition-colors duration-300 overflow-x-hidden">
       
       {/* Primary Navigation and Filter Bars */}
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
       {/* RENDER VIEW ACCORDING TO ACTIVETAB */}
-      <main className="pb-16">
+      <main className="pb-24 sm:pb-16">
         
         {/* VIEW 1: LIVE AUCTIONS EXPLORER */}
         {activeTab === "home" && (
@@ -145,7 +146,7 @@ function MainAppContent() {
                     </p>
                   </div>
 
-                  {currentUser?.role === "admin" && (
+                  {currentUser?.role === "admin" && currentUser?.id !== "guest" && (
                     <button
                       onClick={simulateTimeTick}
                       className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] px-3.5 py-1.5 rounded-xl shadow-sm transition-all hover:scale-[1.02] active:scale-95"
@@ -273,12 +274,23 @@ function MainAppContent() {
       </main>
 
       {/* FOOTER */}
-      <footer className="mt-16 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/30 py-10 transition-colors">
+      <footer className="mt-16 border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/30 pt-10 pb-28 sm:py-10 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-6">
           <BrandLogo size="md" onClick={() => setActiveTab("home")} />
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-right font-medium">
-            Ethiopia's Premium Smartphone Auction Platform • Verified Merchant Handshake System
-          </p>
+          <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-right">
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+              Ethiopia's Premium Smartphone Auction Platform • Verified Merchant Handshake System
+            </p>
+            <button
+              onClick={() => setShowAdminLoginModal(true)}
+              className="text-[11px] text-gray-400 hover:text-[var(--color-gold)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+              id="footer-admin-portal-link"
+              title="Administrator Portal Sign In"
+            >
+              <Shield className="h-3 w-3" />
+              <span>Admin Portal</span>
+            </button>
+          </div>
         </div>
       </footer>
 

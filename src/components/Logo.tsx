@@ -181,14 +181,14 @@ export const BrandLogo: React.FC<BrandLogoProps> = ({
   className = ""
 }) => {
   const textSizeClasses = {
-    sm: "text-lg sm:text-xl",
-    md: "text-2xl sm:text-3xl",
-    lg: "text-3xl sm:text-4xl"
+    sm: "text-base sm:text-lg",
+    md: "text-xl sm:text-2xl lg:text-3xl",
+    lg: "text-2xl sm:text-3xl lg:text-4xl"
   };
 
   const badgeTextClasses = {
-    sm: "text-[10px]",
-    md: "text-[11px] sm:text-[12px]",
+    sm: "text-[9px] sm:text-[10px]",
+    md: "text-[10px] sm:text-[11px] lg:text-[12px]",
     lg: "text-xs sm:text-sm"
   };
 

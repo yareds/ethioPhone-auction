@@ -51,17 +51,13 @@ export const guestUser: UserProfile = {
   joinedDate: new Date().toISOString()
 };
 
-export const ADMIN_EMAILS = [
-  "admin@ethiophone.com",
-  "yared.abegaz@gmail.com",
-  "admin@yonimobile.com"
-];
+export const ADMIN_EMAIL = "admin@yonimobile.com";
+export const ADMIN_EMAILS = [ADMIN_EMAIL];
 
-export const checkIsAdmin = (email?: string | null, storedRole?: UserRole): boolean => {
-  if (storedRole === UserRole.ADMIN) return true;
+export const checkIsAdmin = (email?: string | null): boolean => {
   if (!email) return false;
   const normalized = email.trim().toLowerCase();
-  return ADMIN_EMAILS.includes(normalized) || normalized.startsWith("admin@");
+  return normalized === ADMIN_EMAIL.toLowerCase();
 };
 
 interface AppContextType {
@@ -78,6 +74,8 @@ interface AppContextType {
   // Auth Operations
   signOut: () => void;
   isPhoneSignedIn: boolean;
+  showAdminLoginModal: boolean;
+  setShowAdminLoginModal: (show: boolean) => void;
   signupUser: (userData: {
     name: string;
     email: string;
@@ -202,6 +200,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [batteryFilter, setBatteryFilter] = useState<string>("All");
   const [conditionFilter, setConditionFilter] = useState<string>("All");
   const [sortOption, setSortOption] = useState<string>("ending_soon");
+  const [showAdminLoginModal, setShowAdminLoginModal] = useState<boolean>(false);
 
   const brandFilter = selectedBrand || "All";
   const locationFilter = selectedRegion || "All";
@@ -273,19 +272,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const userSnap = await getDoc(userDocRef);
           if (userSnap.exists()) {
             userProfile = userSnap.data() as UserProfile;
-            const isAdmin = checkIsAdmin(fbUser.email, userProfile.role);
-            if (isAdmin && userProfile.role !== UserRole.ADMIN) {
-              userProfile.role = UserRole.ADMIN;
-              userProfile.isVerifiedSeller = true;
-              setDoc(userDocRef, { role: UserRole.ADMIN, isVerifiedSeller: true }, { merge: true }).catch((e) =>
-                console.warn("Could not set admin role in Firestore:", e)
-              );
+            const isAdmin = checkIsAdmin(fbUser.email);
+            if (isAdmin) {
+              if (userProfile.role !== UserRole.ADMIN) {
+                userProfile.role = UserRole.ADMIN;
+                userProfile.isVerifiedSeller = true;
+                setDoc(userDocRef, { role: UserRole.ADMIN, isVerifiedSeller: true }, { merge: true }).catch((e) =>
+                  console.warn("Could not set admin role in Firestore:", e)
+                );
+              }
+            } else {
+              // Ensure only the single authorized admin can have the admin role
+              if (userProfile.role === UserRole.ADMIN) {
+                userProfile.role = UserRole.BUYER;
+                setDoc(userDocRef, { role: UserRole.BUYER }, { merge: true }).catch(() => {});
+              }
             }
           } else {
             const isAdmin = checkIsAdmin(fbUser.email);
             userProfile = {
               id: fbUser.uid,
-              name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : (isAdmin ? "EthioPhone Admin" : "EthioPhone User")),
+              name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : (isAdmin ? "YONIMobile Admin" : "YONIMobile Member")),
               email: fbUser.email || "",
               phone: fbUser.phoneNumber || "",
               role: isAdmin ? UserRole.ADMIN : UserRole.BUYER,
@@ -309,7 +316,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const isAdmin = checkIsAdmin(fbUser.email);
           userProfile = {
             id: fbUser.uid,
-            name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : (isAdmin ? "EthioPhone Admin" : "EthioPhone User")),
+            name: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0] : (isAdmin ? "YONIMobile Admin" : "YONIMobile Member")),
             email: fbUser.email || "",
             phone: fbUser.phoneNumber || "",
             role: isAdmin ? UserRole.ADMIN : UserRole.BUYER,
@@ -528,8 +535,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     role: UserRole;
   }) => {
     const newUserId = auth.currentUser ? auth.currentUser.uid : `user-${Date.now()}`;
-    const isAdmin = checkIsAdmin(userData.email, userData.role);
-    const assignedRole = isAdmin ? UserRole.ADMIN : (userData.role || UserRole.BUYER);
+    const isAdmin = checkIsAdmin(userData.email);
+    const assignedRole = isAdmin ? UserRole.ADMIN : (userData.role === UserRole.ADMIN ? UserRole.BUYER : (userData.role || UserRole.BUYER));
     const newUser: UserProfile = {
       id: newUserId,
       name: userData.name,
@@ -1248,6 +1255,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         watchlist,
         signOut,
         isPhoneSignedIn,
+        showAdminLoginModal,
+        setShowAdminLoginModal,
         signupUser,
         updateProfile,
         registerShop,

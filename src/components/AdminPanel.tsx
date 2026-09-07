@@ -6,11 +6,13 @@
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { UserRole, Report, ShopProfile } from "../types";
-import { Shield, Users, ShoppingBag, ShieldAlert, Check, Ban, X, Sparkles, TrendingUp, AlertOctagon } from "lucide-react";
+import { Shield, Users, ShoppingBag, ShieldAlert, Check, Ban, X, Sparkles, TrendingUp, AlertOctagon, ArrowLeft } from "lucide-react";
 
 export default function AdminPanel() {
   const {
     currentUser,
+    setActiveTab: setGlobalActiveTab,
+    setShowAdminLoginModal,
     users,
     shops,
     listings,
@@ -23,7 +25,7 @@ export default function AdminPanel() {
 
   const [activeTab, setActiveTab] = useState<"stats" | "users" | "shops" | "reports">("stats");
 
-  if (currentUser.role !== UserRole.ADMIN) {
+  if (currentUser.role !== UserRole.ADMIN || currentUser.id === "guest") {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center animate-in fade-in duration-200">
         <div className="h-16 w-16 bg-[var(--color-danger)]/10 text-[var(--color-danger)] rounded-3xl flex items-center justify-center mx-auto mb-4 border border-[var(--color-danger)]/20">
@@ -31,8 +33,26 @@ export default function AdminPanel() {
         </div>
         <h2 className="text-xl font-bold text-[var(--color-ink)] dark:text-white">Admin Clearance Required</h2>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed">
-          This portal is restricted to authenticated platform administrators. Please sign in with an authorized admin account.
+          This portal is strictly restricted to the authenticated platform administrator.
         </p>
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <button
+            onClick={() => setGlobalActiveTab("home")}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] hover:bg-[var(--color-paper-soft)]/80 text-[var(--color-ink)] dark:text-[var(--color-paper)] font-bold text-xs rounded-xl transition-all border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] cursor-pointer"
+            id="admin-unauthorized-return-home-btn"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>Return to Marketplace</span>
+          </button>
+          <button
+            onClick={() => setShowAdminLoginModal(true)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+            id="admin-unauthorized-login-btn"
+          >
+            <Shield className="h-3.5 w-3.5" />
+            <span>Admin Sign In</span>
+          </button>
+        </div>
       </div>
     );
   }

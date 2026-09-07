@@ -343,7 +343,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
   const score = getTrustScore();
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center p-2 sm:p-4 select-none">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-[var(--color-ink)]/70 backdrop-blur-sm flex justify-center p-2 sm:p-4">
       <div className="bg-[var(--color-paper)] text-[var(--color-ink)] w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl border border-[var(--color-paper-soft)] flex flex-col my-auto max-h-[92vh] animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header toolbar */}
@@ -692,7 +692,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
             </form>
           ) : (
             <>
-              {currentUser.role === UserRole.ADMIN && (
+              {currentUser.role === UserRole.ADMIN && currentUser.id !== "guest" && (
                 <div className="bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/20 p-4 rounded-2xl mb-6 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-bold text-[var(--color-danger)] uppercase tracking-widest flex items-center gap-1.5">
@@ -726,7 +726,7 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
               
               {/* Image Gallery */}
               <div className="relative rounded-2xl overflow-hidden bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] group">
-                <div className="h-80 sm:h-96 flex items-center justify-center relative">
+                <div className="h-64 sm:h-80 md:h-96 flex items-center justify-center relative">
                   <img
                     src={listing.images[activeImgIdx] || "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=600&auto=format&fit=crop&q=80"}
                     alt={`${listing.brand} ${listing.model}`}
@@ -738,13 +738,15 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     <>
                       <button
                         onClick={() => setActiveImgIdx((prev) => (prev === 0 ? listing.images.length - 1 : prev - 1))}
-                        className="absolute left-4 p-2 rounded-full bg-[var(--color-ink)]/50 text-white hover:bg-[var(--color-ink)]/80 transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute left-2 sm:left-4 p-2 rounded-full bg-[var(--color-ink)]/60 text-white hover:bg-[var(--color-ink)]/80 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                        aria-label="Previous image"
                       >
                         <ChevronLeft className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => setActiveImgIdx((prev) => (prev === listing.images.length - 1 ? 0 : prev + 1))}
-                        className="absolute right-4 p-2 rounded-full bg-[var(--color-ink)]/50 text-white hover:bg-[var(--color-ink)]/80 transition-all opacity-0 group-hover:opacity-100"
+                        className="absolute right-2 sm:right-4 p-2 rounded-full bg-[var(--color-ink)]/60 text-white hover:bg-[var(--color-ink)]/80 transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                        aria-label="Next image"
                       >
                         <ChevronRight className="h-5 w-5" />
                       </button>
