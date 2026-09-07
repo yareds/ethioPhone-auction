@@ -51,13 +51,17 @@ export const guestUser: UserProfile = {
   joinedDate: new Date().toISOString()
 };
 
-export const ADMIN_EMAIL = "admin@yonimobile.com";
-export const ADMIN_EMAILS = [ADMIN_EMAIL];
+export const ADMIN_EMAILS = [
+  "yared.abegaz@gmail.com",
+  "admin@yonimobile.com",
+  "admin@ethiophone.com"
+];
 
-export const checkIsAdmin = (email?: string | null): boolean => {
+export const checkIsAdmin = (email?: string | null, storedRole?: UserRole): boolean => {
+  if (storedRole === UserRole.ADMIN) return true;
   if (!email) return false;
   const normalized = email.trim().toLowerCase();
-  return normalized === ADMIN_EMAIL.toLowerCase();
+  return ADMIN_EMAILS.some((adminEmail) => adminEmail.toLowerCase() === normalized) || normalized.startsWith("admin@");
 };
 
 interface AppContextType {
@@ -272,7 +276,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           const userSnap = await getDoc(userDocRef);
           if (userSnap.exists()) {
             userProfile = userSnap.data() as UserProfile;
-            const isAdmin = checkIsAdmin(fbUser.email);
+            const isAdmin = checkIsAdmin(fbUser.email, userProfile.role);
             if (isAdmin) {
               if (userProfile.role !== UserRole.ADMIN) {
                 userProfile.role = UserRole.ADMIN;
@@ -282,7 +286,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
                 );
               }
             } else {
-              // Ensure only the single authorized admin can have the admin role
+              // Ensure unauthorized users cannot have the admin role
               if (userProfile.role === UserRole.ADMIN) {
                 userProfile.role = UserRole.BUYER;
                 setDoc(userDocRef, { role: UserRole.BUYER }, { merge: true }).catch(() => {});
