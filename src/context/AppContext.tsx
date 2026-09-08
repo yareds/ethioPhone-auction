@@ -80,6 +80,10 @@ interface AppContextType {
   isPhoneSignedIn: boolean;
   showAdminLoginModal: boolean;
   setShowAdminLoginModal: (show: boolean) => void;
+  showBidderLoginModal: boolean;
+  setShowBidderLoginModal: (show: boolean) => void;
+  bidderModalContext: string;
+  setBidderModalContext: (ctx: string) => void;
   signupUser: (userData: {
     name: string;
     email: string;
@@ -205,6 +209,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [conditionFilter, setConditionFilter] = useState<string>("All");
   const [sortOption, setSortOption] = useState<string>("ending_soon");
   const [showAdminLoginModal, setShowAdminLoginModal] = useState<boolean>(false);
+  const [showBidderLoginModal, setShowBidderLoginModal] = useState<boolean>(false);
+  const [bidderModalContext, setBidderModalContext] = useState<string>("");
 
   const brandFilter = selectedBrand || "All";
   const locationFilter = selectedRegion || "All";
@@ -1261,6 +1267,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         isPhoneSignedIn,
         showAdminLoginModal,
         setShowAdminLoginModal,
+        showBidderLoginModal,
+        setShowBidderLoginModal,
+        bidderModalContext,
+        setBidderModalContext,
         signupUser,
         updateProfile,
         registerShop,

@@ -124,7 +124,7 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={handleClose}
       role="dialog"
       aria-modal="true"
@@ -267,16 +267,16 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
                 </button>
               </div>
 
-              {/* Explicit return to marketplace text link */}
-              <div className="pt-2 text-center border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]">
+              {/* Return to marketplace link */}
+              <div className="pt-3 flex items-center justify-center border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] text-[11px]">
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="text-[11px] text-gray-500 hover:text-[var(--color-gold)] dark:text-gray-400 transition-colors font-medium cursor-pointer inline-flex items-center gap-1.5"
+                  className="text-gray-500 hover:text-[var(--color-gold)] dark:text-gray-400 transition-colors font-medium cursor-pointer inline-flex items-center gap-1.5 py-0.5"
                   id="admin-login-back-to-marketplace-btn"
                 >
                   <ArrowLeft className="h-3 w-3" />
-                  <span>Decided not to sign in? Return to Marketplace</span>
+                  <span>Return to Marketplace</span>
                 </button>
               </div>
             </form>

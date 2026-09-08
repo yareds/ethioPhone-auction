@@ -42,7 +42,7 @@ service cloud.firestore {
       allow create: if isOwner(userId) &&
         incoming().id == userId &&
         incoming().name is string && incoming().name.size() <= 120 &&
-        incoming().role == 'buyer';
+        (incoming().role == 'buyer' || isAdmin());
       allow update: if (isOwner(userId) || isAdmin()) &&
         incoming().id == existing().id &&
         (isAdmin() || incoming().role == existing().role);

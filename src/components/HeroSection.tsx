@@ -49,7 +49,7 @@ export default function HeroSection() {
   };
 
   return (
-    <div className="relative rounded-3xl overflow-hidden border border-[var(--color-ink-soft)] bg-[var(--color-ink)] text-white shadow-2xl flex flex-col lg:flex-row items-center justify-between mb-8 transition-all" id="hero-section">
+    <div className="relative isolate z-0 rounded-3xl overflow-hidden border border-[var(--color-ink-soft)] bg-[var(--color-ink)] text-white shadow-2xl flex flex-col lg:flex-row items-center justify-between mb-8 transition-all" id="hero-section">
       
       {/* Background Ambience & Pattern Layer */}
       <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden" id="hero-effects-layer">

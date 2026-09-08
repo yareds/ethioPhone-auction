@@ -17,12 +17,18 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
     getChatPartners,
     getMessagesForChat,
     sendMessage,
-    users
+    users,
+    updateProfile,
+    setShowBidderLoginModal,
+    setBidderModalContext
   } = useApp();
 
   const [activeSubTab, setActiveSubTab] = useState<"bids" | "watchlist" | "won" | "chat" | "settings">("bids");
   const [selectedChatPartnerId, setSelectedChatPartnerId] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [editingPhone, setEditingPhone] = useState(currentUser.phone || "");
+  const [editingSubCity, setEditingSubCity] = useState(currentUser.location?.subCity || "Bole");
+  const [profileSaved, setProfileSaved] = useState(false);
 
   // Get active user bids (unique listings the user has bid on)
   const userBiddedListingIds = Array.from(
@@ -87,7 +93,34 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
         </div>
       </div>
 
-      {/* Grid structure: Sidebar Navigation & Content */}
+      {/* Guest Sign-In Banner */}
+      {currentUser.id === "guest" && (
+        <div className="bg-[var(--color-paper)] border-2 border-[var(--color-gold)]/40 rounded-3xl p-6 sm:p-7 shadow-lg mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4 text-left">
+            <div className="h-14 w-14 rounded-2xl bg-[var(--color-gold)]/20 text-[var(--color-gold)] flex items-center justify-center shrink-0">
+              <Gavel className="h-7 w-7" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-[var(--color-ink)] dark:text-white">
+                Track Your Bids & Verified Handshake Pickups
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-xl">
+                Sign in with your Google account to follow your live bids, see if you are winning or outbid, receive 6-digit pickup verification codes, and manage your watchlist.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setBidderModalContext("Sign in with Google to view and track your bids");
+              setShowBidderLoginModal(true);
+            }}
+            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] font-bold text-xs uppercase tracking-wider transition-all shadow-md shrink-0 cursor-pointer"
+            id="buyer-dashboard-signin-btn"
+          >
+            Sign In with Google
+          </button>
+        </div>
+      )}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         
         {/* Sub-tabs menu */}
@@ -535,6 +568,78 @@ export default function BuyerDashboard({ onViewListing }: { onViewListing: (list
                   </div>
                 </div>
               </div>
+
+              {/* Edit Contact / Location for Handshake Pickups */}
+              {currentUser.id !== "guest" && (
+                <div className="p-5 rounded-2xl border border-[var(--color-paper-soft)] bg-[var(--color-paper)] space-y-4">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-[var(--color-ink)] dark:text-white">
+                    Update Contact & Handshake Details
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                        Mobile Number (Telebirr / CBE Active)
+                      </label>
+                      <input
+                        type="tel"
+                        value={editingPhone}
+                        onChange={(e) => setEditingPhone(e.target.value)}
+                        placeholder="+251 911 00 00 00"
+                        className="w-full text-xs bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-xl p-2.5 font-mono text-[var(--color-ink)] dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+                        Addis Ababa Sub-City
+                      </label>
+                      <select
+                        value={editingSubCity}
+                        onChange={(e) => setEditingSubCity(e.target.value)}
+                        className="w-full text-xs bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] rounded-xl p-2.5 text-[var(--color-ink)] dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--color-gold)] cursor-pointer"
+                      >
+                        <option value="Bole">Bole</option>
+                        <option value="Kirkos">Kirkos</option>
+                        <option value="Yeka">Yeka</option>
+                        <option value="Arada">Arada</option>
+                        <option value="Lideta">Lideta</option>
+                        <option value="Nifas Silk">Nifas Silk</option>
+                        <option value="Kolfe">Kolfe Keranio</option>
+                        <option value="Gullele">Gullele</option>
+                        <option value="Akaki">Akaki Kality</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        updateProfile({
+                          phone: editingPhone.trim(),
+                          location: {
+                            ...currentUser.location,
+                            subCity: editingSubCity,
+                            region: "Addis Ababa",
+                            city: "Addis Ababa",
+                            address: currentUser.location?.address || `${editingSubCity} Central Area`
+                          }
+                        });
+                        setProfileSaved(true);
+                        setTimeout(() => setProfileSaved(false), 2000);
+                      }}
+                      className="px-5 py-2.5 bg-[var(--color-gold)] hover:brightness-110 text-[var(--color-ink)] font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer"
+                      id="save-profile-btn"
+                    >
+                      Save Details
+                    </button>
+                    {profileSaved && (
+                      <span className="text-xs text-[var(--color-verified)] font-semibold animate-in fade-in">
+                        ✓ Saved successfully
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

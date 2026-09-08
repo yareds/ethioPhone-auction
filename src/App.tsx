@@ -114,7 +114,7 @@ function MainAppContent() {
   });
 
   return (
-    <div className="min-h-screen bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-gray-100 transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen bg-[var(--color-paper)] dark:bg-[var(--color-ink)] text-[var(--color-ink)] dark:text-gray-100 transition-colors duration-300 overflow-x-clip">
       
       {/* Primary Navigation and Filter Bars */}
       <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
@@ -281,15 +281,17 @@ function MainAppContent() {
             <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
               Ethiopia's Premium Smartphone Auction Platform • Verified Merchant Handshake System
             </p>
-            <button
-              onClick={() => setShowAdminLoginModal(true)}
-              className="text-[11px] text-gray-400 hover:text-[var(--color-gold)] transition-colors inline-flex items-center gap-1 cursor-pointer"
-              id="footer-admin-portal-link"
-              title="Administrator Portal Sign In"
-            >
-              <Shield className="h-3 w-3" />
-              <span>Admin Portal</span>
-            </button>
+            {currentUser.id === "guest" && (
+              <button
+                onClick={() => setShowAdminLoginModal(true)}
+                className="text-[11px] text-gray-400 hover:text-[var(--color-gold)] transition-colors inline-flex items-center gap-1 cursor-pointer"
+                id="footer-admin-portal-link"
+                title="Administrator Portal Sign In"
+              >
+                <Shield className="h-3 w-3" />
+                <span>Admin Portal</span>
+              </button>
+            )}
           </div>
         </div>
       </footer>

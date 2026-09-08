@@ -9,4 +9,4 @@
  *
  * Set TRIAL_MODE to false to restore standard buyer registration & sign-in features.
  */
-export const TRIAL_MODE = true;
+export const TRIAL_MODE = false;
