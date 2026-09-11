@@ -27,6 +27,7 @@ import {
   Check,
   PartyPopper
 } from "lucide-react";
+import EditBidTimeFrameModal, { toLocalDatetimeString } from "./EditBidTimeFrameModal";
 
 export default function ListingDetail({ listing, onClose, onOpenShop }: { listing: PhoneListing; onClose: () => void; onOpenShop: (shopId: string) => void }) {
   const {
@@ -72,6 +73,9 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
   const [editedMinIncrement, setEditedMinIncrement] = useState(listing.minIncrement.toString());
   const [editedBuyNow, setEditedBuyNow] = useState(listing.buyNowPrice?.toString() || "");
   const [editedStatus, setEditedStatus] = useState<AuctionStatus>(listing.status);
+  const [editedStartTime, setEditedStartTime] = useState(toLocalDatetimeString(listing.startTime || new Date().toISOString()));
+  const [editedEndTime, setEditedEndTime] = useState(toLocalDatetimeString(listing.endTime));
+  const [showTimeFrameModal, setShowTimeFrameModal] = useState(false);
 
   // Sync edits when listing changes
   useEffect(() => {
@@ -89,6 +93,8 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
     setEditedMinIncrement(listing.minIncrement.toString());
     setEditedBuyNow(listing.buyNowPrice?.toString() || "");
     setEditedStatus(listing.status);
+    setEditedStartTime(toLocalDatetimeString(listing.startTime || new Date().toISOString()));
+    setEditedEndTime(toLocalDatetimeString(listing.endTime));
   }, [listing]);
 
   // Messaging state
@@ -320,6 +326,9 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
     const minIncNum = parseInt(editedMinIncrement) || 0;
     const buyNowNum = editedBuyNow ? parseInt(editedBuyNow) : undefined;
 
+    const startIso = editedStartTime ? new Date(editedStartTime).toISOString() : listing.startTime;
+    const endIso = editedEndTime ? new Date(editedEndTime).toISOString() : listing.endTime;
+
     updateListing(listing.id, {
       brand: editedBrand,
       model: editedModel,
@@ -334,7 +343,9 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
       currentBid: curBidNum,
       minIncrement: minIncNum,
       buyNowPrice: buyNowNum,
-      status: editedStatus
+      status: editedStatus,
+      startTime: startIso,
+      endTime: endIso
     });
 
     setIsEditing(false);
@@ -558,6 +569,118 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     </div>
                   </div>
 
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-bold text-[var(--color-ink)]/60 uppercase">Auction Start Time</label>
+                        <button
+                          type="button"
+                          onClick={() => setEditedStartTime(toLocalDatetimeString(new Date().toISOString()))}
+                          className="text-[10px] text-[var(--color-gold)] hover:underline font-semibold cursor-pointer"
+                        >
+                          Set Now
+                        </button>
+                      </div>
+                      <input
+                        type="datetime-local"
+                        value={editedStartTime}
+                        onChange={(e) => setEditedStartTime(e.target.value)}
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
+                        required
+                        id="form-edit-auction-start-time"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Auction End Time</label>
+                      <input
+                        type="datetime-local"
+                        value={editedEndTime}
+                        onChange={(e) => setEditedEndTime(e.target.value)}
+                        className="w-full text-xs bg-[var(--color-paper-soft)] border border-[var(--color-paper-soft)] rounded-xl p-3 focus:outline-none focus:ring-1 focus:ring-[var(--color-gold)] text-[var(--color-ink)]"
+                        required
+                        id="form-edit-auction-end-time"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Quick Extend End Time</label>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const base = editedEndTime ? new Date(editedEndTime).getTime() : Date.now();
+                          const newEnd = new Date(Math.max(base, Date.now()) + 30 * 60 * 1000);
+                          setEditedEndTime(toLocalDatetimeString(newEnd.toISOString()));
+                          if (editedStatus === AuctionStatus.ENDED) setEditedStatus(AuctionStatus.LIVE);
+                        }}
+                        className="px-2.5 py-1 text-[11px] bg-[var(--color-paper-soft)] hover:bg-[var(--color-gold)]/20 hover:text-[var(--color-gold)] rounded-lg font-semibold transition-all cursor-pointer"
+                      >
+                        +30m
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const base = editedEndTime ? new Date(editedEndTime).getTime() : Date.now();
+                          const newEnd = new Date(Math.max(base, Date.now()) + 60 * 60 * 1000);
+                          setEditedEndTime(toLocalDatetimeString(newEnd.toISOString()));
+                          if (editedStatus === AuctionStatus.ENDED) setEditedStatus(AuctionStatus.LIVE);
+                        }}
+                        className="px-2.5 py-1 text-[11px] bg-[var(--color-paper-soft)] hover:bg-[var(--color-gold)]/20 hover:text-[var(--color-gold)] rounded-lg font-semibold transition-all cursor-pointer"
+                      >
+                        +1h
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const base = editedEndTime ? new Date(editedEndTime).getTime() : Date.now();
+                          const newEnd = new Date(Math.max(base, Date.now()) + 6 * 60 * 60 * 1000);
+                          setEditedEndTime(toLocalDatetimeString(newEnd.toISOString()));
+                          if (editedStatus === AuctionStatus.ENDED) setEditedStatus(AuctionStatus.LIVE);
+                        }}
+                        className="px-2.5 py-1 text-[11px] bg-[var(--color-paper-soft)] hover:bg-[var(--color-gold)]/20 hover:text-[var(--color-gold)] rounded-lg font-semibold transition-all cursor-pointer"
+                      >
+                        +6h
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const base = editedEndTime ? new Date(editedEndTime).getTime() : Date.now();
+                          const newEnd = new Date(Math.max(base, Date.now()) + 24 * 60 * 60 * 1000);
+                          setEditedEndTime(toLocalDatetimeString(newEnd.toISOString()));
+                          if (editedStatus === AuctionStatus.ENDED) setEditedStatus(AuctionStatus.LIVE);
+                        }}
+                        className="px-2.5 py-1 text-[11px] bg-[var(--color-paper-soft)] hover:bg-[var(--color-gold)]/20 hover:text-[var(--color-gold)] rounded-lg font-semibold transition-all cursor-pointer"
+                      >
+                        +24h (1 Day)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const base = editedEndTime ? new Date(editedEndTime).getTime() : Date.now();
+                          const newEnd = new Date(Math.max(base, Date.now()) + 3 * 24 * 60 * 60 * 1000);
+                          setEditedEndTime(toLocalDatetimeString(newEnd.toISOString()));
+                          if (editedStatus === AuctionStatus.ENDED) setEditedStatus(AuctionStatus.LIVE);
+                        }}
+                        className="px-2.5 py-1 text-[11px] bg-[var(--color-paper-soft)] hover:bg-[var(--color-gold)]/20 hover:text-[var(--color-gold)] rounded-lg font-semibold transition-all cursor-pointer"
+                      >
+                        +3 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const now = new Date();
+                          const newEnd = new Date(now.getTime() + 10 * 60 * 1000);
+                          setEditedEndTime(toLocalDatetimeString(newEnd.toISOString()));
+                          if (editedStatus === AuctionStatus.ENDED) setEditedStatus(AuctionStatus.LIVE);
+                        }}
+                        className="px-2.5 py-1 text-[11px] bg-orange-500/10 text-orange-600 hover:bg-orange-500/20 rounded-lg font-semibold transition-all cursor-pointer"
+                      >
+                        End in 10m
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-[10px] font-bold text-[var(--color-ink)]/60 uppercase mb-1">Auction Status</label>
                     <select
@@ -700,18 +823,27 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
                     </p>
                     <p className="text-[11px] text-[var(--color-ink)]/70 mt-1">You have authorized permissions to edit phone specifications, manage images, delete listing, or modify bidding details/bids.</p>
                   </div>
-                  <div className="flex gap-2.5">
+                  <div className="flex flex-wrap gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowTimeFrameModal(true)}
+                      className="bg-[var(--color-gold)] hover:brightness-110 text-gray-950 text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                      id="admin-open-bid-time-frame-btn"
+                    >
+                      <Clock className="h-4 w-4" />
+                      <span>Edit Bid Time Frame</span>
+                    </button>
                     <button
                       type="button"
                       onClick={() => setIsEditing(true)}
-                      className="bg-[var(--color-danger)] hover:brightness-110 text-white text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5"
+                      className="bg-[var(--color-danger)] hover:brightness-110 text-white text-xs px-4 py-2 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                     >
                       Edit Listing & Images
                     </button>
                     <button
                       type="button"
                       onClick={handleAdminDeleteListing}
-                      className="bg-[var(--color-paper-soft)] hover:bg-[var(--color-danger)]/10 text-[var(--color-danger)] text-xs px-4 py-2 rounded-xl font-bold transition-all"
+                      className="bg-[var(--color-paper-soft)] hover:bg-[var(--color-danger)]/10 text-[var(--color-danger)] text-xs px-4 py-2 rounded-xl font-bold transition-all cursor-pointer"
                     >
                       Delete Auction
                     </button>
@@ -1212,6 +1344,12 @@ export default function ListingDetail({ listing, onClose, onOpenShop }: { listin
         }}
         context={signupContext}
         onSignupSuccess={handleSignupSuccess}
+      />
+
+      <EditBidTimeFrameModal
+        isOpen={showTimeFrameModal}
+        onClose={() => setShowTimeFrameModal(false)}
+        listing={listing}
       />
     </div>
   );
