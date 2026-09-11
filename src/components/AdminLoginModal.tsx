@@ -4,11 +4,16 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  signInWithPopup
+} from "firebase/auth";
 import { auth, googleProvider } from "../lib/firebase";
-import { useApp } from "../context/AppContext";
+import { useApp, checkIsAdmin, ADMIN_EMAILS } from "../context/AppContext";
 import { UserRole } from "../types";
-import { Shield, Lock, Mail, X, KeyRound, AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Shield, Lock, Mail, X, KeyRound, AlertCircle, ArrowLeft, CheckCircle2, Sparkles, Send } from "lucide-react";
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -22,11 +27,14 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
 
   const isAdmin = currentUser.role === UserRole.ADMIN && currentUser.id !== "guest";
 
   const handleClose = () => {
     setErrorMsg("");
+    setSuccessMsg("");
     setEmail("");
     setPassword("");
     onClose();
@@ -52,27 +60,31 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
       case "auth/invalid-credential":
       case "auth/wrong-password":
       case "auth/user-not-found":
-        return "Invalid email or password. Please check your credentials.";
+        return "Incorrect email or password. If you haven't set a password yet or use Google, please use 'Continue with Google' above.";
       case "auth/invalid-email":
         return "Please enter a valid email address.";
       case "auth/user-disabled":
         return "This administrator account has been disabled.";
       case "auth/too-many-requests":
-        return "Too many failed login attempts. Please try again later.";
+        return "Too many failed login attempts. Please wait a moment or use Google Sign In.";
       case "auth/network-request-failed":
         return "Network connection error. Please check your internet connection.";
       case "auth/operation-not-allowed":
-        return "Email/Password sign-in is disabled in Firebase Auth. Please enable it in the Firebase Console.";
+        return "Email/Password sign-in is disabled in Firebase Auth settings. Please use 'Continue with Google' to sign in as Admin.";
+      case "auth/weak-password":
+        return "Password must be at least 6 characters long.";
       default:
-        return "Failed to sign in as Admin. Please check your email and password.";
+        return "Authentication failed. Please check your credentials or continue with Google.";
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
+    setSuccessMsg("");
 
-    if (!email.trim() || !email.includes("@")) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
       setErrorMsg("Please enter a valid email address.");
       return;
     }
@@ -80,10 +92,24 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
       setErrorMsg("Please enter your password.");
       return;
     }
+    if (password.length < 6) {
+      setErrorMsg("Password must be at least 6 characters long.");
+      return;
+    }
+
+    // Check if this email is an authorized admin
+    const isAuthorized = checkIsAdmin(cleanEmail);
+    if (!isAuthorized) {
+      setErrorMsg(
+        "This email is not in the administrator allowlist. Authorized administrators include yared.abegaz@gmail.com, admin@yonimobile.com, or admin@* addresses."
+      );
+      return;
+    }
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email.trim(), password);
+      // 1. Try signing in first
+      await signInWithEmailAndPassword(auth, cleanEmail, password);
       setEmail("");
       setPassword("");
       if (onSuccess) {
@@ -91,16 +117,79 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
       }
       onClose();
     } catch (err: any) {
-      console.error("Admin login error:", err);
-      const friendlyMsg = getFriendlyErrorMessage(err?.code || "");
-      setErrorMsg(friendlyMsg);
+      const code = err?.code || "";
+      // 2. If account does not exist or credentials invalid, try provisioning initial admin credentials
+      if (code === "auth/invalid-credential" || code === "auth/user-not-found") {
+        try {
+          await createUserWithEmailAndPassword(auth, cleanEmail, password);
+          setEmail("");
+          setPassword("");
+          if (onSuccess) {
+            onSuccess();
+          }
+          onClose();
+        } catch (createErr: any) {
+          const createCode = createErr?.code || "";
+          if (createCode === "auth/email-already-in-use") {
+            // Account already exists in Firebase (e.g. registered via Google or existing password)
+            setErrorMsg(
+              cleanEmail.toLowerCase() === "yared.abegaz@gmail.com"
+                ? "Incorrect password for this account. Since this account uses Google Sign-In, please click 'Continue with Google' above."
+                : "Incorrect password for this administrator account. Please verify your password or use 'Forgot Password?' to reset it."
+            );
+          } else if (createCode === "auth/operation-not-allowed") {
+            setErrorMsg(
+              "Email/Password provider is disabled in Firebase Auth. Please use 'Continue with Google' to sign in as Admin."
+            );
+          } else if (createCode === "auth/weak-password") {
+            setErrorMsg("Password must be at least 6 characters long.");
+          } else {
+            console.warn("Admin provision error:", createErr);
+            setErrorMsg(getFriendlyErrorMessage(createCode));
+          }
+        }
+      } else if (code === "auth/wrong-password") {
+        setErrorMsg(
+          cleanEmail.toLowerCase() === "yared.abegaz@gmail.com"
+            ? "Incorrect password for this account. Since this account uses Google Sign-In, please click 'Continue with Google' above."
+            : "Incorrect password for this administrator account. Please verify your password or use 'Forgot Password?' to reset it."
+        );
+      } else {
+        console.warn("Admin sign in error:", err);
+        setErrorMsg(getFriendlyErrorMessage(code));
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleForgotPassword = async () => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes("@")) {
+      setErrorMsg("Please enter your admin email above first, then click 'Forgot Password'.");
+      return;
+    }
+    setErrorMsg("");
+    setSuccessMsg("");
+    setIsResetting(true);
+    try {
+      await sendPasswordResetEmail(auth, cleanEmail);
+      setSuccessMsg(`Password reset link sent to ${cleanEmail}! Check your inbox to set your password.`);
+    } catch (err: any) {
+      console.warn("Password reset error:", err);
+      if (err?.code === "auth/user-not-found") {
+        setErrorMsg("No account found for this email. Enter a password (min 6 chars) and click 'Sign In' to set it up.");
+      } else {
+        setErrorMsg(err?.message || "Could not send password reset email.");
+      }
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     setErrorMsg("");
+    setSuccessMsg("");
     setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
@@ -185,28 +274,40 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
         ) : (
           <>
             {errorMsg && (
-              <div className="mb-4 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] rounded-xl p-3 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{errorMsg}</span>
+              <div className="mb-4 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 text-[var(--color-danger)] rounded-xl p-3 text-xs font-semibold flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{errorMsg}</span>
+              </div>
+            )}
+
+            {successMsg && (
+              <div className="mb-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-xl p-3 text-xs font-semibold flex items-start gap-2">
+                <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
+                <span className="leading-relaxed">{successMsg}</span>
               </div>
             )}
 
             {/* Google Sign In option */}
-            <button
-              type="button"
-              onClick={handleGoogleSignIn}
-              disabled={loading}
-              className="w-full mb-4 py-3 px-4 rounded-xl border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] bg-[var(--color-paper-soft)]/50 dark:bg-[var(--color-ink-soft)]/50 hover:bg-[var(--color-paper-soft)] dark:hover:bg-[var(--color-ink-soft)] text-[var(--color-ink)] dark:text-white text-xs font-bold transition-all flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50"
-              id="admin-login-google-btn"
-            >
-              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
-                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-              </svg>
-              <span>Continue with Google</span>
-            </button>
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                className="w-full py-3 px-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[var(--color-ink-soft)] hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-800 dark:text-white text-xs font-bold transition-all shadow-xs hover:shadow-sm flex items-center justify-center gap-2.5 cursor-pointer disabled:opacity-50 active:scale-[0.99]"
+                id="admin-login-google-btn"
+              >
+                <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                  <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                  <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 10.03 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                  <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                </svg>
+                <span>Continue with Google as Admin</span>
+              </button>
+              <p className="text-[10px] text-center text-gray-400 dark:text-gray-500 mt-1">
+                Authorized for <span className="text-[var(--color-gold)] font-medium">yared.abegaz@gmail.com</span>
+              </p>
+            </div>
 
             <div className="relative flex py-1 items-center mb-4">
               <div className="flex-grow border-t border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)]"></div>
@@ -216,9 +317,28 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Mail className="h-3 w-3 text-[var(--color-gold)]" /> Admin Email
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <Mail className="h-3 w-3 text-[var(--color-gold)]" /> Admin Email
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setEmail("yared.abegaz@gmail.com")}
+                      className="text-[10px] text-gray-400 hover:text-[var(--color-gold)] underline cursor-pointer"
+                    >
+                      yared
+                    </button>
+                    <span className="text-gray-300 dark:text-gray-600 text-[10px]">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setEmail("admin@yonimobile.com")}
+                      className="text-[10px] text-gray-400 hover:text-[var(--color-gold)] underline cursor-pointer"
+                    >
+                      yonimobile
+                    </button>
+                  </div>
+                </div>
                 <input
                   type="email"
                   value={email}
@@ -231,18 +351,31 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
-                  <Lock className="h-3 w-3 text-[var(--color-gold)]" /> Password
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                    <Lock className="h-3 w-3 text-[var(--color-gold)]" /> Password
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={isResetting}
+                    className="text-[10px] text-[var(--color-gold)] hover:underline cursor-pointer font-medium disabled:opacity-50"
+                  >
+                    {isResetting ? "Sending link..." : "Forgot Password?"}
+                  </button>
+                </div>
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Minimum 6 characters"
                   required
                   className="w-full bg-[var(--color-paper-soft)] dark:bg-[var(--color-ink-soft)] border border-[var(--color-paper-soft)] dark:border-[var(--color-ink-soft)] focus:border-[var(--color-gold)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--color-ink)] dark:text-white font-medium outline-none transition-all"
                   id="admin-login-password-input"
                 />
+                <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-1">
+                  New admin? Enter your desired password (min 6 characters) to initialize.
+                </p>
               </div>
 
               {/* Action Buttons: Cancel and Sign In */}
@@ -263,7 +396,7 @@ export default function AdminLoginModal({ isOpen, onClose, onSuccess }: AdminLog
                   id="admin-login-submit-btn"
                 >
                   <KeyRound className="h-4 w-4" />
-                  <span>{loading ? "Authenticating..." : "Sign In"}</span>
+                  <span>{loading ? "Authenticating..." : "Sign In / Setup"}</span>
                 </button>
               </div>
 
